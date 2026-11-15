@@ -1,0 +1,19 @@
+# Persoenliche Daten und Laufzeitdateien gehoeren nie ins Repo
+deck.json
+deck.json.*
+config.json
+cache.json
+covers/
+user/
+*.log
+*.log.old
+*.bak*
+Sicherung/
+Entwurf/
+update/
+# Gebaute Dateien und Fremd-DLLs (kommen nur ins Release)
+dist/
+setup/payload.zip
+*.exe
+*.dll
+*.zip

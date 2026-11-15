@@ -1,0 +1,54 @@
+GameShelf Deck (deckos-181)
+===========================
+Spieleregal, Leistungsanzeige, Makro-Tasten, Philips Hue, Medien und Mixer fuer einen
+zweiten Bildschirm im Querformat (z. B. Corsair Xeneon Edge 2560x720, aber auch 1920x1080
+oder 2560x1440). Hochkant wird nicht unterstuetzt. Laeuft unter Windows 10/11 (64 Bit).
+
+Einrichten und aendern
+- "GameShelf Deck Setup.exe" fuehrt durch alles: Voraussetzungen, Bildschirm, Discord,
+  Schluessel, Emulatoren, Autostart. Erneut starten = Angaben aendern oder Version tauschen.
+  Einstellungen, Schluessel, Cover und Spielzeiten bleiben bei einem Update erhalten.
+- Updates kommen automatisch: Das Deck fragt alle 6 Stunden bei GitHub nach
+  (github.com/ShadyKVN/gameshelf-deck). Ist eine neue Version da, erscheint sie oben in der
+  Insel und unter Einstellungen > Allgemein > Updates. "Jetzt installieren" laedt das Setup,
+  prueft die Pruefsumme und tauscht nur die Programmdateien; das Deck startet danach neu.
+  Waehrend eines Spiels wird nie installiert. Ablauf steht in update.log.
+- Entfernen: Windows-Einstellungen > Apps > Installierte Apps > GameShelf Deck.
+
+Was das Deck braucht
+- Pflicht: Microsoft Edge WebView2-Laufzeit (bei Windows 11 dabei), ein zweiter Bildschirm.
+- Performance-Tab: MSI Afterburner und RivaTuner Statistics Server muessen laufen
+  (nur von msi.com laden: https://www.msi.com/Landing/afterburner/graphics-cards).
+- Cover fuer Nicht-Steam-Spiele: eigener SteamGridDB-Schluessel
+  (https://www.steamgriddb.com/profile/preferences/api).
+- Freunde, Wunschliste, Erfolge: eigener Steam-Web-API-Schluessel
+  (https://steamcommunity.com/dev/apikey).
+- Geraete-Akkus: Logitech G HUB, Corsair iCUE oder SteelSeries GG.
+
+Bedienung
+- Unten die Tab-Leiste: Gaming, Performance, Home, Makros, Hue, Medien. Wischen wechselt.
+- Tipp auf die Insel oben oeffnet die Mitteilungszentrale, dort das Zahnrad fuer die Einstellungen.
+- Rechtsklick bzw. langes Druecken auf ein Spiel: Cover waehlen, umbenennen, ausblenden.
+- Tastenkuerzel (im Setup abschaltbar): Strg+Alt+S, A, D, F, V, T, R.
+- Beenden: Power-Symbol im Deck oder "Deck beenden.cmd".
+
+Dateien im Installationsordner
+- Programm: Deck.ps1, Deck.html, GameShelf.Core.ps1, DeckNative.cs/.dll, lib\, deck.ico.
+- Ihre Daten: deck.json (Einstellungen, Steam-Schluessel, Hue-Kopplung), config.json
+  (SteamGridDB-Schluessel, Emulator-Pfade), cache.json, covers\, user\, deck.log.
+  Diese Dateien enthalten persoenliche Angaben. Nicht weitergeben.
+
+Wenn etwas nicht geht
+- Deck bleibt unsichtbar: Ist ein zweiter Bildschirm an? Im Setup den Bildschirm fest waehlen.
+- Deck auf dem falschen Bildschirm: Einstellungen > Allgemein > Bildschirm.
+- Keine FPS-Anzeige: RivaTuner Statistics Server (RTSS) muss laufen, bevor das Spiel startet
+  (Symbol im Infobereich; kommt mit MSI Afterburner). In RTSS "Application detection level"
+  nicht auf "None". Das Overlay im Spiel muss dafuer nicht eingeblendet sein. Manche Spiele
+  mit Kopierschutz/Anti-Cheat lassen RTSS nicht zu, dann bleibt die Anzeige leer.
+- Deck bleibt leer: WebView2-Laufzeit installieren, dann "Deck starten.cmd".
+- Fehler stehen in deck.log und deck-fehler.log.
+
+Fuer Fortgeschrittene: Couch-Modus (Streaming per Apollo)
+- In Apollo eine App "Couch" anlegen, die CouchHold.ps1 startet; CouchFps.ps1 setzt mit
+  erhoehten Rechten ein 60-FPS-Limit in RTSS. Beide Skripte liegen im Installationsordner.
+  Wer das nicht einrichtet, merkt vom Couch-Modus nichts.
