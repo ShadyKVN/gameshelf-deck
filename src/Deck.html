@@ -1284,6 +1284,8 @@ body.game-on .n-blob, body.game-on .n-hero, body.game-on .n-cov, body.game-on .n
     .deckroot .osclock:not(.mini) { flex-direction: column; align-items: flex-end; justify-content: center; gap: 1px; line-height: 1; }
     .deckroot .osclock:not(.mini) .tm { font-size: 38px; line-height: 1; }
     .deckroot .osclock:not(.mini) .dt { font-size: 14px; line-height: 1.15; gap: 6px; }
+/* Kopfzeile rechts: nur Uhrzeit, kein Datum (15.11. abends) */
+    .nxtop .nxtopr .osclock .dt { display: none; }
 /* >>> Revamp „Eine Bühne“ (deckos-182, 15.11.2026): Lichtbühne, einheitliches Glas, schlichtes Tagesband, neue Einstellungen */
 /* ===== DeckOS Revamp „Eine Bühne" (deckos-182) ===== */
 @property --a1 { syntax: "<color>"; inherits: true; initial-value: #20264a; }
