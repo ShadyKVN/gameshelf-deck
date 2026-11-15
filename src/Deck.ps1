@@ -68,7 +68,7 @@ if (-not $own) {
     if (-not $own) { Log 'Alte Instanz reagiert nicht - Start abgebrochen.'; exit }
 }
 [void]$script:QuitEvent.Reset()
-$script:Version = 'deckos-181'
+$script:Version = 'deckos-182'
 Log '--- Start'
 Log "Version $($script:Version)"
 
