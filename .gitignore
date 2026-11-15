@@ -17,3 +17,5 @@ setup/payload.zip
 *.exe
 *.dll
 *.zip
+bin/
+tmp/

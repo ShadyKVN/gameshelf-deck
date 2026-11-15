@@ -1,0 +1,43 @@
+# Baut bei jedem Tag deckos-NNN das Setup und veroeffentlicht es als Release.
+# Die Decks der Freunde lesen /releases/latest und laden GameShelf-Deck-Setup.exe (Pruefsumme: Asset-Digest bzw. SHA256SUMS.txt).
+name: Release
+on:
+  push:
+    tags: ['deckos-*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mono installieren
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q mono-mcs libmono-system-windows-forms4.0-cil libmono-system-io-compression4.0-cil libmono-system-io-compression-filesystem4.0-cil libmono-system-web-extensions4.0-cil
+      - name: Fremd-DLLs aus offiziellen Quellen holen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          mkdir -p bin/lib tmp/cue/x
+          curl -fsSL -o tmp/wv.nupkg https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/1.0.2903.40
+          unzip -q tmp/wv.nupkg -d tmp/wv
+          cp tmp/wv/lib/net462/Microsoft.Web.WebView2.Core.dll tmp/wv/lib/net462/Microsoft.Web.WebView2.Wpf.dll bin/lib/
+          cp tmp/wv/runtimes/win-x64/native/WebView2Loader.dll bin/lib/
+          gh release download v4.0.84 -R CorsairOfficial/cue-sdk -p '*.zip' -D tmp/cue
+          for z in tmp/cue/*.zip; do unzip -q -o "$z" -d "tmp/cue/x/$(basename "$z" .zip)"; done
+          want=d72fd819b91fd1d3b0c3db2ea17a47dcfe3b38e26269aa967ecfee10d2e93884
+          found=""
+          while IFS= read -r f; do if [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$want" ]; then found="$f"; break; fi; done < <(find tmp/cue/x -iname 'iCUESDK.x64_2019.dll')
+          if [ -z "$found" ]; then echo "iCUESDK.x64_2019.dll mit erwarteter Pruefsumme nicht gefunden"; find tmp/cue/x -iname '*.dll' -exec sha256sum {} \; ; exit 1; fi
+          cp "$found" bin/
+      - name: Setup bauen
+        run: python3 setup/build.py --bin bin
+      - name: Release veroeffentlichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="setup/notes/${GITHUB_REF_NAME}.md"
+          [ -f "$notes" ] || { echo "Update ${GITHUB_REF_NAME}" > /tmp/n.md; notes=/tmp/n.md; }
+          gh release create "$GITHUB_REF_NAME" dist/GameShelf-Deck-Setup.exe dist/SHA256SUMS.txt --title "$GITHUB_REF_NAME" --notes-file "$notes" --latest

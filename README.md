@@ -27,7 +27,7 @@ Fremd-DLLs (WebView2 SDK 1.0.2903.40 von NuGet, Corsair iCUE SDK 4.0.84) liegen 
 ## Release erstellen
 
 1. Version in `src/Deck.ps1` (`$script:Version`) und `setup/Setup.cs` (`App.Version`) erhöhen, gleiche Schreibweise `deckos-NNN`.
-2. `python3 setup/build.py --bin <Ordner mit den DLLs>`
-3. Release mit Tag `deckos-NNN` anlegen, `dist/GameShelf-Deck-Setup.exe` und `dist/SHA256SUMS.txt` anhängen. Das Deck vergleicht nur die Zahl im Tag.
+2. Lokal testen (optional): `python3 setup/build.py --bin <Ordner mit den DLLs>`
+3. Release-Text nach `setup/notes/deckos-NNN.md`, committen, dann `git tag deckos-NNN && git push origin deckos-NNN` – die Action baut und veröffentlicht das Release. Das Deck vergleicht nur die Zahl im Tag.
 
 Privates Projekt für Freunde – keine Gewähr.
