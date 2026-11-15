@@ -65,7 +65,7 @@ public static class DeckNative
     public static bool PerMonitorAware() { try { return SetProcessDpiAwarenessContext(new IntPtr(-4)) != IntPtr.Zero; } catch { return false; } }
 
     // ------------------------------------------------------------ Monitore
-    public class Mon { public string Device; public int X, Y, W, H, Dpi; public bool Primary; public int Orientation; }
+    public class Mon { public string Device; public int X, Y, W, H, Dpi; public bool Primary; public int Orientation, Hz; }
     public static List<Mon> Monitors()
     {
         var list = new List<Mon>();
@@ -76,10 +76,62 @@ public static class DeckNative
             var dm = new DEVMODE(); dm.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
             EnumDisplaySettingsEx(mi.szDevice, -1, ref dm, 0);
             list.Add(new Mon { Device = mi.szDevice, X = mi.rcMonitor.L, Y = mi.rcMonitor.T, W = mi.rcMonitor.R - mi.rcMonitor.L, H = mi.rcMonitor.B - mi.rcMonitor.T,
-                Dpi = (int)dx, Primary = (mi.dwFlags & 1) != 0, Orientation = dm.dmDisplayOrientation });
+                Dpi = (int)dx, Primary = (mi.dwFlags & 1) != 0, Orientation = dm.dmDisplayOrientation, Hz = dm.dmDisplayFrequency });
             return true;
         }, IntPtr.Zero);
         return list;
+    }
+    // Wiederholrate des Hauptbildschirms in Hz (-1 = nicht lesbar), fuer das FPS-Ziel (15.11.)
+    public static int PrimaryHz()
+    {
+        try { foreach (var m in Monitors()) if (m.Primary) return m.Hz > 1 ? m.Hz : -1; } catch { }
+        return -1;
+    }
+
+    // ------------------------------------------------------------ NVIDIA-Bildratenbegrenzung „Max Frame Rate“ (Treiberprofil; setzt auch die NVIDIA App), 15.11.
+    [DllImport("nvapi64.dll", EntryPoint = "nvapi_QueryInterface", CallingConvention = CallingConvention.Cdecl)] static extern IntPtr NvQI(uint id);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate int NvInitFn();
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate int NvCreateFn(out IntPtr s);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate int NvSessFn(IntPtr s);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate int NvProfFn(IntPtr s, out IntPtr p);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate int NvGetSetFn(IntPtr s, IntPtr p, uint id, IntPtr setting);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Unicode)] delegate int NvFindAppFn(IntPtr s, [MarshalAs(UnmanagedType.LPWStr)] string app, out IntPtr p, IntPtr appInfo);
+    static T NvFn<T>(uint id) where T : class { IntPtr f = NvQI(id); return f == IntPtr.Zero ? null : (Marshal.GetDelegateForFunctionPointer(f, typeof(T)) as T); }
+    static void NvZero(IntPtr p, int n) { Marshal.Copy(new byte[n], 0, p, n); }
+    public static string NvCapInfo = "";
+    // >0 = Begrenzung in fps, 0 = aus, -1 = nicht lesbar (kein NVIDIA-Treiber o. ae.). exe: Spielprofil zuerst (z. B. "bf6.exe"), sonst globales Profil.
+    public static int NvFrameCap(string exe)
+    {
+        const uint FRL = 0x10835002; const int SZ = 12320; const int CUR = 8220; const int ASZ = 16396;
+        IntPtr s = IntPtr.Zero, buf = IntPtr.Zero, app = IntPtr.Zero; NvSessFn destroy = null;
+        try {
+            var init = NvFn<NvInitFn>(0x0150E828u); if (init == null || init() != 0) { NvCapInfo = "NVAPI nicht verfuegbar"; return -1; }
+            var create = NvFn<NvCreateFn>(0x0694D52Eu); var load = NvFn<NvSessFn>(0x375DBD6Bu); destroy = NvFn<NvSessFn>(0xDAD9CFF8u);
+            var glob = NvFn<NvProfFn>(0x617BFF9Fu); var get = NvFn<NvGetSetFn>(0x73BF8338u); var find = NvFn<NvFindAppFn>(0xEEE566B2u);
+            if (create == null || load == null || glob == null || get == null) { NvCapInfo = "DRS nicht verfuegbar"; return -1; }
+            if (create(out s) != 0) { NvCapInfo = "DRS-Sitzung"; return -1; }
+            if (load(s) != 0) { NvCapInfo = "DRS laden"; return -1; }
+            buf = Marshal.AllocHGlobal(SZ);
+            if (find != null && !string.IsNullOrEmpty(exe)) {
+                app = Marshal.AllocHGlobal(ASZ + 8192); NvZero(app, ASZ + 8192); Marshal.WriteInt32(app, 0, ASZ | (3 << 16));
+                IntPtr ap;
+                if (find(s, exe, out ap, app) == 0 && ap != IntPtr.Zero) {
+                    NvZero(buf, SZ); Marshal.WriteInt32(buf, 0, SZ | (1 << 16));
+                    if (get(s, ap, FRL, buf) == 0) { int va = Marshal.ReadInt32(buf, CUR); NvCapInfo = "Spielprofil " + exe; return va < 0 ? 0 : va; }
+                }
+            }
+            IntPtr gp; if (glob(s, out gp) != 0) { NvCapInfo = "globales Profil"; return -1; }
+            NvZero(buf, SZ); Marshal.WriteInt32(buf, 0, SZ | (1 << 16));
+            int r = get(s, gp, FRL, buf);
+            if (r == 0) { int vg = Marshal.ReadInt32(buf, CUR); NvCapInfo = "global"; return vg < 0 ? 0 : vg; }
+            if (r == -160) { NvCapInfo = "global, nicht gesetzt"; return 0; }   // NVAPI_SETTING_NOT_FOUND
+            NvCapInfo = "Lesefehler " + r; return -1;
+        } catch (Exception e) { NvCapInfo = e.GetType().Name; return -1; }
+        finally {
+            if (buf != IntPtr.Zero) Marshal.FreeHGlobal(buf);
+            if (app != IntPtr.Zero) Marshal.FreeHGlobal(app);
+            if (s != IntPtr.Zero && destroy != null) { try { destroy(s); } catch { } }
+        }
     }
     // Der Deck-Bildschirm: bevorzugt der genannte Monitor, sonst der erste, der nicht Hauptbildschirm ist.
     // Ohne Vorgabe: der kleinste Bildschirm, der nicht Hauptbildschirm ist (typisch: Zusatzdisplay wie CX133 oder Xeneon Edge).

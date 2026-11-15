@@ -68,7 +68,7 @@ if (-not $own) {
     if (-not $own) { Log 'Alte Instanz reagiert nicht - Start abgebrochen.'; exit }
 }
 [void]$script:QuitEvent.Reset()
-$script:Version = 'deckos-182'
+$script:Version = 'deckos-183'
 Log '--- Start'
 Log "Version $($script:Version)"
 
@@ -1830,7 +1830,7 @@ public static class DeckIconX2 {
     $script:HudVisible = $false
     function On-Message($m) {
         switch ([string]$m.type) {
-            'ready' { $script:Ready = $true; Send-Init; $script:LastMutes = ''; Send-Mutes; $script:LastCam = ''; try { Restore-Cam } catch { try { [DeckErr]::L('Z1317a', $_) } catch {} }; try { Send-Cam } catch { try { [DeckErr]::L('Z1317b', $_) } catch {} }; $script:LastBat = ''; try { Send-PadBat } catch { try { [DeckErr]::L('Z1317c', $_) } catch {} }; $script:WaLast = -1; if ($script:Cal.At) { Send-Cal } else { Start-CalFetch }; Send-HomePhoto; try { if ($script:UpdJustFrom) { Send-UpdState 'done' $script:UpdJustFrom; $script:UpdJustFrom = '' } elseif ($script:UpdAvail) { Send-UpdState 'avail' } else { Send-UpdState 'idle' } } catch { }; try { Send-FchProfiles } catch { Log "Fritchii-Profile senden: $_" }; $script:DevBatStamp = -1; $script:FrLastMsg = ''; Send-Friends; if ($script:AppIcons.Map.Count) { Send-AppIcons } else { Start-AppIcons }
+            'ready' { $script:Ready = $true; Send-Init; $script:LastMutes = ''; Send-Mutes; $script:LastCam = ''; try { Restore-Cam } catch { try { [DeckErr]::L('Z1317a', $_) } catch {} }; try { Send-Cam } catch { try { [DeckErr]::L('Z1317b', $_) } catch {} }; $script:LastBat = ''; try { Send-PadBat } catch { try { [DeckErr]::L('Z1317c', $_) } catch {} }; try { Send-FpsTarget -Force } catch { try { [DeckErr]::L('Z1317d', $_) } catch {} }; $script:WaLast = -1; if ($script:Cal.At) { Send-Cal } else { Start-CalFetch }; Send-HomePhoto; try { if ($script:UpdJustFrom) { Send-UpdState 'done' $script:UpdJustFrom; $script:UpdJustFrom = '' } elseif ($script:UpdAvail) { Send-UpdState 'avail' } else { Send-UpdState 'idle' } } catch { }; try { Send-FchProfiles } catch { Log "Fritchii-Profile senden: $_" }; $script:DevBatStamp = -1; $script:FrLastMsg = ''; Send-Friends; if ($script:AppIcons.Map.Count) { Send-AppIcons } else { Start-AppIcons }
                 try { $tf = Join-Path $script:UserDir 'timers.json'; if (Test-Path $tf) { $tl = @(ConvertFrom-Json ([IO.File]::ReadAllText($tf)) | ForEach-Object { $_ }); Send ([ordered]@{ type = 'timers'; list = @($tl) }) } } catch { Log "Timer laden: $_" } }
             'launch' {
                 if ([string]$m.src -eq 'pad' -and ($script:PadLocked -or $script:Running)) { Log "Controller-Start abgelehnt (Spiel/Vollbild aktiv): $([string]$m.id)" }
@@ -2212,6 +2212,7 @@ public static class DeckIconX2 {
             }
             if ($id) { Log "Spiel erkannt: $name ($id)"; $script:RunningSince = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() } else { if ($script:Running) { Log 'Spiel beendet'; if ($script:Couch) { $script:CouchFront = 12 } }; $script:RunningSince = 0 }
             $script:Running = $id; $script:RunningName = $name
+            $script:FpsTAt = $script:Tick + 12   # FPS-Ziel neu bestimmen, sobald RTSS das Spiel sieht (Spielprofil der NVIDIA App)
         }
         $script:RunningPid = 0
         if ($id) { $f2 = 0.0; $rp = [DeckNative]::RtssTop([ref]$f2); if ($rp -gt 0 -and $f2 -gt 5) { $script:RunningPid = $rp } }
@@ -2293,6 +2294,7 @@ public static class DeckIconX2 {
             if ($script:MuteDiag -and $script:Tick -ge $script:MuteDiag.at) { try { Log ('Ton-Diagnose 2 s spaeter: [' + [DeckNative]::EndpointMuteDiag([int]$script:MuteDiag.flow) + ']') } catch { }; $script:MuteDiag = $null }
             if (($script:Tick % 8 -eq 4) -or ($script:CamReqAt -and $script:Tick % 2 -eq 0)) { try { Send-Cam } catch { try { [DeckErr]::L('Z1612', $_) } catch {} } }
             if ($script:Tick % 4 -eq 1) { Send-PadBat }   # jede Sekunde: Verbinden/Trennen zuegig melden
+            if (($script:Tick % 240 -eq 11) -or ($script:FpsTAt -and $script:Tick -ge $script:FpsTAt)) { $script:FpsTAt = 0; try { Send-FpsTarget } catch { try { [DeckErr]::L('Z3103', $_) } catch {} } }   # FPS-Ziel: jede Minute und 3 s nach Spielwechsel
             if ($script:Tick % 12 -eq 9) { Poll-WhatsApp }
             if ($script:Tick % 12 -eq 3) { Poll-Claude }
             if ($script:Tick % 4 -eq 3) { try { Poll-Friends } catch { Log "Steam-Freunde: $_" } }
@@ -2848,6 +2850,20 @@ public static class DeckIconX2 {
     $guardTimer.Start()
 
     $script:LastBat = ''
+    function Send-FpsTarget([switch]$Force) {
+        # Ziel der FPS-Anzeige (15.11.): NVIDIA-Bildratenbegrenzung (Spielprofil, sonst global) > Wiederholrate des Hauptbildschirms > 240
+        $hz = -1; try { $hz = [DeckNative]::PrimaryHz() } catch { try { [DeckErr]::L('Z3101', $_) } catch {} }
+        $exe = ''
+        if ($script:Running) { try { $f3 = 0.0; $rp3 = [DeckNative]::RtssTop([ref]$f3); if ($rp3 -gt 0) { $exe = [Diagnostics.Process]::GetProcessById($rp3).ProcessName + '.exe' } } catch { } }
+        $cap = -1; try { $cap = [DeckNative]::NvFrameCap($exe) } catch { try { [DeckErr]::L('Z3102', $_) } catch {} }
+        $t = 240; $src = 'fallback'
+        if ($cap -gt 0) { $t = $cap; $src = 'nvidia' } elseif ($hz -gt 0) { $t = $hz; $src = 'monitor' }
+        $msg = [ordered]@{ type = 'fpstarget'; target = [int]$t; src = $src; hz = [int]$hz; cap = [int]$cap }
+        $k = ($msg | ConvertTo-Json -Compress); if (-not $Force -and $k -eq $script:LastFpsT) { return }
+        $script:LastFpsT = $k; Send $msg
+        $inf = ''; try { $inf = [DeckNative]::NvCapInfo } catch { }
+        Log ("FPS-Ziel: {0} ({1}; Hauptbildschirm {2} Hz; NVIDIA-Begrenzung {3} [{4}])" -f $t, $src, $hz, $cap, $inf)
+    }
     function Send-PadBat {
         # Controller-Steckplatz frisch ermitteln (auch waehrend eines Spiels); verbunden = sichtbar, auch wenn der Akkustand nicht lesbar ist
         $on = $false; $lv = -1
