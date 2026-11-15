@@ -1,9 +1,10 @@
-# Baut bei jedem Tag deckos-NNN das Setup und veroeffentlicht es als Release.
+# Baut das Setup und veroeffentlicht es als Release, sobald auf main eine Version in src/Deck.ps1 steht, zu der es noch kein Release gibt.
 # Die Decks der Freunde lesen /releases/latest und laden GameShelf-Deck-Setup.exe (Pruefsumme: Asset-Digest bzw. SHA256SUMS.txt).
 name: Release
 on:
   push:
-    tags: ['deckos-*']
+    branches: [main]
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
@@ -11,11 +12,21 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - name: Version lesen
+        id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=$(grep -oP "\\\$script:Version = '\\K[^']+" src/Deck.ps1)
+          echo "tag=$v" >> "$GITHUB_OUTPUT"
+          if gh release view "$v" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then echo "new=0" >> "$GITHUB_OUTPUT"; echo "Release $v gibt es schon"; else echo "new=1" >> "$GITHUB_OUTPUT"; echo "Neues Release $v"; fi
       - name: Mono installieren
+        if: steps.v.outputs.new == '1'
         run: |
           sudo apt-get update -q
           sudo apt-get install -y -q mono-mcs libmono-system-windows-forms4.0-cil libmono-system-io-compression4.0-cil libmono-system-io-compression-filesystem4.0-cil libmono-system-web-extensions4.0-cil
       - name: Fremd-DLLs aus offiziellen Quellen holen
+        if: steps.v.outputs.new == '1'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -33,11 +44,14 @@ jobs:
           if [ -z "$found" ]; then echo "iCUESDK.x64_2019.dll mit erwarteter Pruefsumme nicht gefunden"; find tmp/cue/x -iname '*.dll' -exec sha256sum {} \; ; exit 1; fi
           cp "$found" bin/
       - name: Setup bauen
+        if: steps.v.outputs.new == '1'
         run: python3 setup/build.py --bin bin
       - name: Release veroeffentlichen
+        if: steps.v.outputs.new == '1'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          notes="setup/notes/${GITHUB_REF_NAME}.md"
-          [ -f "$notes" ] || { echo "Update ${GITHUB_REF_NAME}" > /tmp/n.md; notes=/tmp/n.md; }
-          gh release create "$GITHUB_REF_NAME" dist/GameShelf-Deck-Setup.exe dist/SHA256SUMS.txt --title "$GITHUB_REF_NAME" --notes-file "$notes" --latest
+          v="${{ steps.v.outputs.tag }}"
+          notes="setup/notes/$v.md"
+          [ -f "$notes" ] || { echo "Update $v" > /tmp/n.md; notes=/tmp/n.md; }
+          gh release create "$v" dist/GameShelf-Deck-Setup.exe dist/SHA256SUMS.txt --target "$GITHUB_SHA" --title "$v" --notes-file "$notes" --latest
