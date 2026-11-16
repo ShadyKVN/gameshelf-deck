@@ -886,7 +886,10 @@ body.game-on .n-blob, body.game-on .n-hero, body.game-on .n-cov, body.game-on .n
 .n-mInfo { position: absolute; left: 510px; top: 58px; right: 40px; }
 .n-mInfo .n-ti { font-size: 62px; font-weight: 700; letter-spacing: -1.5px; margin-top: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .n-mInfo .n-ar { font-size: 26px; color: rgba(255,255,255,.75); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.n-prog { margin-top: 40px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.15); position: relative; }
+.n-prog { margin-top: 40px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.15); position: relative; cursor: pointer; }
+.n-prog::before { content: ""; position: absolute; left: -10px; right: -10px; top: -18px; bottom: -18px; }   /* größere Trefferfläche zum Spulen (deckos-187) */
+.n-ptime { cursor: pointer; }
+.n-noseek .n-prog, .n-noseek .n-ptime { cursor: default; } .n-noseek .n-prog::before { display: none; }   /* App erlaubt kein Spulen (z. B. Apple Music) */
 .n-prog i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: #fff; }
 .n-prog em { position: absolute; top: -6px; width: 20px; height: 20px; border-radius: 50%; background: #fff; margin-left: -10px; box-shadow: 0 0 14px rgba(255,255,255,.6); }
 .n-ptime { display: flex; justify-content: space-between; font-size: 15px; color: var(--n-sub); margin-top: 10px; font-variant-numeric: tabular-nums; }
@@ -3591,6 +3594,12 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
     if (e.target.closest("[data-stack]")) { stackGo(1); return; }
     var mc = e.target.closest("[data-macro]"); if (mc) { osMacro(mc.getAttribute("data-macro"), mc); return; }
     var hu = e.target.closest("[data-hue]"); if (hu) { osHue(hu); return; }
+    var spg = e.target.closest(".n-mNow .n-prog, .n-mNow .n-ptime"); if (spg) {   // Fortschrittsleiste antippen: an diese Stelle springen (deckos-187)
+      var sm = st.media || {}, bar = spg.parentNode.querySelector(".n-prog"), nxr = scr().querySelector(".nxroot");
+      if (sm.title && sm.dur > 0 && sm.canSeek !== false && bar && nxr) { var br = bar.getBoundingClientRect(), kz = nxr.getBoundingClientRect().width / window.innerWidth || 1, fr = Math.max(0, Math.min(1, (e.clientX * kz - br.left) / br.width)), sec = Math.round(fr * sm.dur * 10) / 10;
+        send({ type: "media", cmd: "seek:" + sec }); sm.pos = sec; sm.posAt = Date.now(); NX.update(); }
+      return;
+    }
     var ccm = e.target.closest("[data-ccmed]"); if (ccm) { ccClose(function () { osGo(PI("media")); }); return; }   // Kontrollzentrum: „Jetzt läuft“ → Medien-Tab (deckos-186)
     var mfr = e.target.closest("[data-mfront]"); if (mfr) { if ((st.media || {}).title) { send({ type: "mediafront" }); if (!noMotion()) mfr.animate([{ scale: "1" }, { scale: ".96", offset: .3 }, { scale: "1" }], { duration: 380, easing: "ease-out" }); } return; }   // Cover: App nach vorn (deckos-186)
     var mb = e.target.closest("[data-media]"); if (mb) { var mcmd = mb.getAttribute("data-media"); if (mcmd === "next" || mcmd === "prev") { st.medDir = mcmd === "prev" ? -1 : 1; st.medDirAt = Date.now(); } send({ type: "media", cmd: mcmd }); return; }
@@ -4899,6 +4908,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       input: function (t) { var ch = t.closest(".n-ch"); if (!ch) return; q(ch, ".n-fdr > i").style.height = t.value + "%"; setTxt(q(ch, ".n-pc"), t.value + " %"); },
       prog: function () {
         var m = st.media || {}, pn = this.pn, ok = m.title && m.dur > 0;
+        pn.classList.toggle("n-noseek", m.canSeek === false);
         q(pn, ".n-prog").style.visibility = ok ? "" : "hidden"; q(pn, ".n-ptime").style.visibility = ok ? "" : "hidden"; if (!ok) return;
         var p = m.pos + (m.playing && m.posAt ? Math.max(0, (Date.now() - m.posAt) / 1000) : 0); p = Math.max(0, Math.min(m.dur, p));
         var f = p / m.dur * 100, ft = function (s) { s = Math.floor(s); return (s / 60 | 0) + ":" + pad(s % 60); };

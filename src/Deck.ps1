@@ -68,7 +68,7 @@ if (-not $own) {
     if (-not $own) { Log 'Alte Instanz reagiert nicht - Start abgebrochen.'; exit }
 }
 [void]$script:QuitEvent.Reset()
-$script:Version = 'deckos-186'
+$script:Version = 'deckos-187'
 Log '--- Start'
 Log "Version $($script:Version)"
 
@@ -385,6 +385,7 @@ public static class DeckIdle {
                             'toggle' { [void](Await ($s.TryTogglePlayPauseAsync()) ([bool])) }
                             'next' { [void](Await ($s.TrySkipNextAsync()) ([bool])) }
                             'prev' { [void](Await ($s.TrySkipPreviousAsync()) ([bool])) }
+                            default { if ($c -match '^seek:([0-9]+(\.[0-9]+)?)$') { $sec = [double]$Matches[1]; $en = $null; try { $en = $s.GetPlaybackInfo().Controls.IsPlaybackPositionEnabled } catch { }; $ok = [bool](Await ($s.TryChangePlaybackPositionAsync([long]($sec * 10000000))) ([bool])); $state.Note = "Spulen auf $([math]::Round($sec)) s: " + $(if ($ok) { 'ok' } else { 'abgelehnt' }) + " (App erlaubt Spulen: $en, $($s.SourceAppUserModelId))" } }   # deckos-187: Fortschrittsleiste antippen
                         }
                         Start-Sleep -Milliseconds 250
                     }
@@ -394,11 +395,13 @@ public static class DeckIdle {
                         $app = [string]$s.SourceAppUserModelId
                         $app = ($app -replace '\.exe$', '' -replace '^.*!', '' -replace '^.*\\', '')
                         if ($app -match '^Spotify') { $app = 'Spotify' }
+                        elseif ([string]$s.SourceAppUserModelId -match 'AppleMusic') { $app = 'Apple Music' }   # deckos-187: sonst nur "App" (AppleInc.AppleMusicWin_…!App)
                         elseif ($app -match '^([A-Za-z]+)\.[A-Za-z0-9]{8,}') { $app = $Matches[1] }   # z. B. Vivaldi.SMY6OBBMK… -> Vivaldi
                         switch -regex ($app) { '^msedge$' { $app = 'Edge' } '^chrome$' { $app = 'Chrome' } '^firefox$' { $app = 'Firefox' } '^opera' { $app = 'Opera' } '^brave$' { $app = 'Brave' } }
                         if ($app.Length -gt 1 -and $app -cmatch '^[a-z]') { $app = $app.Substring(0, 1).ToUpper() + $app.Substring(1) }
                         $state.Title = [string]$p.Title; $state.Artist = [string]$p.Artist; $state.App = $app; $state.Aumid = [string]$s.SourceAppUserModelId
                         $state.Playing = ([string]$pb.PlaybackStatus -eq 'Playing')
+                        try { $state.CanSeek = [bool]$pb.Controls.IsPlaybackPositionEnabled } catch { $state.CanSeek = $true }   # deckos-187: Apple Music u. a. erlauben kein Spulen von aussen
                         $state.Album = [string]$p.AlbumTitle
                         try { $tl = $s.GetTimelineProperties(); $state.Pos = [double]$tl.Position.TotalSeconds; $state.Dur = [double]($tl.EndTime - $tl.StartTime).TotalSeconds; $state.PosAt = [double]$tl.LastUpdatedTime.ToUnixTimeMilliseconds() } catch { $state.Dur = 0 }
                         $key = "$($p.Title)|$($p.Artist)"
@@ -983,8 +986,9 @@ public static class DeckIconX2 {
         $m = $script:Media
         if ($m.Err -and $m.Err -ne $script:LastMediaErr) { Log ("Musik: " + $m.Err); $script:LastMediaErr = $m.Err }
         if ($m.ArtErr -and $m.ArtErr -ne $script:LastArtErr) { Log ("Musik: " + $m.ArtErr); $script:LastArtErr = $m.ArtErr }
+        if ($m.Note) { Log ("Musik: " + $m.Note); $m.Note = '' }
         $art = ''; if ($m.Art) { $art = 'https://gs.deck/user/' + $m.Art }
-        $obj = [ordered]@{ title = [string]$m.Title; artist = [string]$m.Artist; app = [string]$m.App; playing = [bool]$m.Playing; art = $art; album = [string]$m.Album; pos = [math]::Round([double]$m.Pos, 1); dur = [math]::Round([double]$m.Dur, 1); posAt = [double]$m.PosAt }
+        $obj = [ordered]@{ title = [string]$m.Title; artist = [string]$m.Artist; app = [string]$m.App; playing = [bool]$m.Playing; art = $art; album = [string]$m.Album; canSeek = [bool]$m.CanSeek; pos = [math]::Round([double]$m.Pos, 1); dur = [math]::Round([double]$m.Dur, 1); posAt = [double]$m.PosAt }
         $key = ($obj | ConvertTo-Json -Compress)
         if ($key -eq $script:LastMediaKey) { return }
         $script:LastMediaKey = $key
