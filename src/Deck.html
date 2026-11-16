@@ -1453,6 +1453,44 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
 .nxroot .n-inst .n-v { letter-spacing: -2.5px; }
 @media (prefers-reduced-motion: reduce) { .rv-amb i { animation: none; } }
 /* <<< Revamp deckos-182 */
+/* deckos-192: Rollende Zahlen */
+rl-c { display: inline-block; position: relative; clip-path: inset(0 -0.25em); }
+rl-m { display: inline; }
+rl-b { display: inline-block; position: relative; }
+rl-d { position: absolute; left: 0; right: 0; text-align: center; }
+.lmov { position: fixed; z-index: 9000; overflow: hidden; pointer-events: auto; background: #000; box-shadow: 0 30px 90px rgba(0,0,0,.6); }
+.lmov > i { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.lmov .lmshade { background: radial-gradient(ellipse at center, rgba(0,0,0,.12), rgba(0,0,0,.68)); opacity: 0; }
+.lmfg { position: fixed; z-index: 9001; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.lmfg .lmlogo { height: 42%; max-width: 46%; display: flex; align-items: center; justify-content: center; opacity: 0; }
+.lmfg .lmlogo img { max-height: 100%; max-width: 100%; object-fit: contain; filter: drop-shadow(0 12px 40px rgba(0,0,0,.6)); }
+.lmfg .lmname, .lmcard .lmname { font-size: 64px; font-weight: 800; letter-spacing: -1px; text-align: center; text-shadow: 0 8px 40px rgba(0,0,0,.7); }
+.lmfg .lmsub { margin-top: 3.2%; font-size: 21px; letter-spacing: .24em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.82); opacity: 0; }
+.lmbar { margin-top: 18px; width: 200px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.18); overflow: hidden; opacity: 0; }
+.lmbar > i { display: block; height: 100%; width: 100%; border-radius: 2px; background: var(--flash, #fff); transform-origin: 0 50%; transform: scaleX(0); }
+.lmlid { position: fixed; z-index: 9002; pointer-events: none; overflow: hidden; }
+.lmlid > b { position: absolute; left: 0; right: 0; height: 50.5%; background: #07070a; }
+.lmlid > b:first-child { top: 0; transform: translateY(-101%); } .lmlid > b:nth-child(2) { bottom: 0; transform: translateY(101%); }
+.lmlid > i { position: absolute; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; background: var(--flash, #fff); box-shadow: 0 0 30px 6px var(--flash, #fff); transform: scaleX(0); opacity: 0; }
+.lmdim { position: fixed; z-index: 9000; background: rgba(0,0,0,.6); opacity: 0; pointer-events: auto; }
+.lmcard { position: fixed; z-index: 9001; perspective: 1600px; pointer-events: none; }
+.lmcard > .lmci { position: absolute; inset: 0; transform-style: preserve-3d; }
+.lmcard .lmf, .lmcard .lmb { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 16px; overflow: hidden; background-size: cover; background-position: center; box-shadow: 0 30px 70px rgba(0,0,0,.55); }
+.lmcard .lmb { transform: rotateY(180deg); background-color: #0e0b09; border: 1px solid rgba(255,255,255,.12); }
+.lmcard .lmb > i { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: .5; }
+.lmcard .lmb > u { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.65)); }
+.lmcard .lmbc { position: absolute; left: 7%; right: 7%; bottom: 9%; opacity: 0; }
+.lmcard .lmbc .lmlogo2 { height: 34%; } .lmcard .lmbc img { max-height: 150px; max-width: 80%; object-fit: contain; filter: drop-shadow(0 8px 30px rgba(0,0,0,.6)); display: block; }
+.lmcard .lmbc .lmsub2 { margin-top: 18px; font-size: 18px; letter-spacing: .22em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.8); }
+.lmcard .lmbc .lmbar { opacity: 1; margin-top: 14px; }
+.nxroot { transition: filter .35s ease; }
+body.menu-on .nxroot { filter: blur(18px) brightness(.55) saturate(1.1); }
+body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-events: none; transition: opacity .2s; }
+.lm-hold .n-in, .lm-hold .n-in.n-on { opacity: 0 !important; transition: none !important; }
+.lmcard .lmbc { left: 50% !important; right: auto !important; top: 50% !important; bottom: auto !important; transform: translate(-50%, 0); margin-top: -20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.lmcard .lmb > u { background: radial-gradient(ellipse 60% 70% at 50% 52%, rgba(6,7,10,.88) 0%, rgba(6,7,10,.78) 60%, rgba(6,7,10,.66) 100%), linear-gradient(0deg, rgba(6,7,10,.85) 0%, rgba(6,7,10,0) 35%) !important; }
+.lmcard .lmb > i { opacity: 1; }
+.lmwave { position: fixed; z-index: 8999; pointer-events: none; border-radius: 50%; }
 </style>
 </head><body>
 <div class="screen deckroot" id="screen"></div>
@@ -1583,7 +1621,8 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
   var st = { ui: "os", clockStyle: "digital", agendaMode: "stack", menuTab: "general", touchOnly: false, osPage: 2, hue: null, bright: null, dcUp: false, macroCustom: "", mode: "auto", form: "reel", style: "glas", dtheme: "dark", dcpos: "a", share: 0.6, accent: "#3B82F6", flash: "#7FB2FF",
     menu: false, dc: "off", prevDc: null, monPortrait: true, rtss: "off", focus: 0, running: -1, runGame: null, started: 0, launching: -1, vramTotal: 16, user: { name: "", avatar: "" }, zoom: 1, discordSplit: true, autostart: true, flashSel: "#7FB2FF",
     accentSel: "accent", sysAccent: "#3B82F6", bg: "deck", blur: "light", tint: "mid", tone: "system", sysLight: false, modHue: true, modMusic: true, modVoice: true, modMixer: true, modStats: true, fsVol: true, fsPad: true, fsBat: true, fsWa: true, fsCl: true, photoOn: true, fsAch: true, fsOk: true, fsFr: true, fsHeat: true, fsMus: true, fsDl: true, hudArt: true, media: null, mixer: [], voice: { mic: false, deaf: false }, ctx: null, sg: null, holdShelfUntil: 0 };
-  try { st.cflow = localStorage.getItem("gsCflow") !== "0"; st.phys = localStorage.getItem("gsPhys") !== "0"; st.dockMag = localStorage.getItem("gsDockMag") !== "0"; } catch (e) { st.cflow = true; st.phys = true; st.dockMag = true; }   // deckos-185, gespeichert wie rvStage
+  try { st.cflow = localStorage.getItem("gsCflow") !== "0"; st.phys = localStorage.getItem("gsPhys") !== "0"; st.dockMag = localStorage.getItem("gsDockMag") !== "0"; st.rollNum = localStorage.getItem("gsRoll") !== "0"; st.launchSt = localStorage.getItem("gsLaunchSt") || "wave"; if (!/^(stage|lid|tile|wave)$/.test(st.launchSt)) st.launchSt = "wave"; } catch (e) { st.cflow = true; st.phys = true; st.dockMag = true; st.rollNum = true; st.launchSt = "wave"; }
+  document.body.classList.toggle("rl-on", st.rollNum !== false);   // deckos-192   // deckos-185, gespeichert wie rvStage
   var hud = { fps: 0, low: null, ft: 0, gpu: 0, cpu: 0, gt: 0, ct: 0, vram: 0, pw: 0, hist: [] };
   for (var i0 = 0; i0 < 120; i0++) hud.hist.push(0);
 
@@ -1739,6 +1778,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       ["bg", "Hintergrund", "", [["deck", "Deck"], ["clear", "Durchscheinend"]]],
       ["rvStage", "Lichtbühne", "", SW, "Farbiges Licht hinter den Flächen. Aus: Hintergrund wie bisher."],   /* deckos-182 */
       ["dockMag", "Dock-Vergrößerung", "", SW, "Das Symbol unter Finger oder Maus wächst wie beim Mac-Dock."],   /* deckos-191 */
+      ["rollNum", "Rollende Zahlen", "", SW, "Die Uhr dreht sich beim Minutenwechsel wie ein Kilometerzähler weiter."],   /* deckos-192 */
       ["tint", "Glasdichte", "", [["xlow", "Hauch"], ["low", "Klar"], ["mid", "Mittel"], ["high", "Dicht"], ["xhigh", "Satt"]]],
       ["tone", "Glasfarbe", "", [["system", "Wie Windows"], ["dark", "Schwarz"], ["light", "Weiß"]]],
       ["#", "Farben"],
@@ -1756,6 +1796,8 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       ["#", "Gaming-Tab"],
       ["cflow", "Coverflow (3D-Cover)", "", SW, "Cover schräg in 3D mit Spiegelung. Aus: Cover-Leiste wie bisher."],
       ["phys", "Echte Physik", "", SW, "Schwung mit Einrasten, Gummiband, federnde Cover und Lichtspur unter dem Finger."],
+      ["#", "Spielstart"],
+      ["launchSt", "Animation", "", [["wave", "Klassisch"], ["stage", "Vollbild"], ["lid", "Lidschlag"], ["tile", "Kachel"]]],   /* deckos-194 */
       ["#", "Discord"],
       ["discordSplit", "Discord-Fenster andocken", "", SW],
       ["dcpos", "Seite", "D", [["a", "Oben"], ["b", "Unten"]]],
@@ -2106,6 +2148,36 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
   // Gestaffeltes Einblenden: Kacheln erscheinen nacheinander (leicht versetzt, von der Wischrichtung her)
   var SPR = "linear(0, 0.046, 0.159, 0.307, 0.465, 0.618, 0.752, 0.863, 0.95, 1.012, 1.052, 1.074, 1.083, 1.082, 1.074, 1.062, 1.049, 1.036, 1.024, 1.014, 1.006, 1, 0.997, 0.994, 0.993, 0.993, 0.994, 0.994, 0.996, 0.997, 0.998, 0.999, 0.999, 1)", SPR_SOFT = "linear(0, 0.065, 0.208, 0.376, 0.537, 0.676, 0.787, 0.871, 0.93, 0.969, 0.993, 1.007, 1.013, 1.015, 1.014, 1.012, 1.01, 1.007, 1.005, 1.003, 1.002, 1.001, 1)";
   function noMotion() { return matchMedia("(prefers-reduced-motion: reduce)").matches; }
+  // deckos-192: Rollende Zahlen – geänderte Ziffern rollen wie ein Kilometerzähler (hoch = rollt nach oben), mit leichtem Nachfedern
+  var RL_MS = 560, RL_EASE = "cubic-bezier(.3,1.45,.5,1)";
+  function rlNum(t) { var v = parseFloat(String(t).replace(/\./g, "").replace(",", ".").replace(/[^0-9.\-]/g, "")); return isNaN(v) ? null : v; }
+  function rollTxt(el, t) {
+    if (!el) return; t = String(t);
+    if (el._rlBusy) { el._rlPend = t; return; }
+    var old = el._rv != null ? el._rv : el.textContent;
+    if (old === t) { el._rv = t; if (el.textContent !== t) el.textContent = t; return; }
+    el._rv = t;
+    if (st.rollNum === false || noMotion() || !/\d/.test(t) || !/\d/.test(old) || !el.isConnected || !el.getClientRects().length) { el.textContent = t; return; }
+    var nv = rlNum(t), ov = rlNum(old), up = !(nv != null && ov != null && nv < ov), off = t.length - old.length, any = false, run = "";
+    el.textContent = "";
+    var flush = function () { if (run) { el.appendChild(document.createTextNode(run)); run = ""; } };
+    for (var i = 0; i < t.length; i++) {
+      var c = t.charAt(i), oc = i - off >= 0 ? old.charAt(i - off) : "";
+      if (c !== oc && /\d/.test(c) && (oc === "" || /\d/.test(oc))) {
+        flush(); any = true;
+        var w = document.createElement("rl-c"), b = document.createElement("rl-b"), a1 = document.createElement("rl-d");
+        b.textContent = c; a1.textContent = oc || " "; a1.style.top = up ? "-100%" : "100%"; b.appendChild(a1); w.appendChild(b); el.appendChild(w);
+        var mm = document.createElement("rl-m"); mm.textContent = oc; el.appendChild(mm); var w0 = oc ? mm.getBoundingClientRect().width : 0; mm.textContent = c; var w1 = mm.getBoundingClientRect().width, sc = el.offsetWidth ? 1 : 1; el.removeChild(mm);
+        var rs = el.getBoundingClientRect().width / Math.max(1, el.offsetWidth) || 1; w0 /= rs; w1 /= rs;
+        if (Math.abs(w0 - w1) > 0.5) w.animate([{ width: w0 + "px" }, { width: w1 + "px" }], { duration: RL_MS * 0.6, easing: "cubic-bezier(.3,.8,.3,1)", fill: "forwards" });
+        b.animate([{ transform: "translateY(" + (up ? "100%" : "-100%") + ")" }, { transform: "translateY(0)" }], { duration: RL_MS, easing: RL_EASE, fill: "forwards" });
+      } else run += c;
+    }
+    flush();
+    if (!any) { el.textContent = t; return; }
+    el._rlBusy = true;
+    setTimeout(function () { el._rlBusy = false; if (el._rv === t) el.textContent = t; if (el._rlPend != null) { var p = el._rlPend; el._rlPend = null; rollTxt(el, p); } }, RL_MS + 40);
+  }
   function rubber(dir) {   // dir: +1 = über das Ende hinaus, -1 = vor den Anfang
     var pw = scr().querySelector(".ospagewrap"); if (!pw || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     pw.animate([{ transform: "translate3d(0,0,0)" }, { transform: "translate3d(" + (-dir * 46) + "px,0,0)", offset: 0.35 }, { transform: "translate3d(" + (dir * 8) + "px,0,0)", offset: 0.7 }, { transform: "translate3d(0,0,0)" }],
@@ -3424,6 +3496,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       var islO = islSnap(ad.lastElementChild);
       if (!(st.cc && ccDrag)) ad.lastElementChild.innerHTML = islandBoxHTML(d.w) + (st.cc ? ccHTML() : "") + tmAlarmHTML() + dockHTML(d.w, d.h) + (st.powerOpen ? powerHTML(d.h) : "") + (st.frCard ? frCardHTML(d.w, d.h) : "") + (st.liveCard ? liveCardHTML() : "") + (st.menu ? menuHTML() : "") + sgHTML() + ctxHTML() + (st.splash ? splashHTML(d.w, d.h) : "") +
         '<div class="edgelight" id="edge" style="' + (edgeTop ? "top:0" : "bottom:0") + '"></div>';
+      document.body.classList.toggle("menu-on", !!st.menu);   // deckos-194: Einstellungen offen → Hintergrund unscharf, Insel weg
       NX.render(); islMorph(islO); if (st.ccMorph) ccMorphApply();
       var cm = s.querySelector(".ctxmenu");   // Kontextmenü immer vollständig im Bild halten
       if (cm && st.ctx) { var cr = cm.getBoundingClientRect(), cz = cm.offsetHeight ? cr.height / cm.offsetHeight : 1, ovY = (cr.bottom - (window.innerHeight - 8)) / cz, ovX = (cr.right - (window.innerWidth - 8)) / cz; if (ovY > 0) { st.ctx.y = Math.max(8, cm.offsetTop - ovY); cm.style.top = px(st.ctx.y); } if (ovX > 0) { st.ctx.x = Math.max(8, cm.offsetLeft - ovX); cm.style.left = px(st.ctx.x); } }
@@ -3525,7 +3598,9 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
     if (v === "true") v = true; else if (v === "false") v = false;
     if (k === "flashSel") st.flash = v === "accent" ? st.accent : v;
     st[k] = v;
-    if (k === "cflow" || k === "phys" || k === "dockMag") { try { localStorage.setItem(k === "cflow" ? "gsCflow" : k === "phys" ? "gsPhys" : "gsDockMag", v ? "1" : "0"); } catch (e) {} }
+    if (k === "cflow" || k === "phys" || k === "dockMag" || k === "rollNum") { try { localStorage.setItem({ cflow: "gsCflow", phys: "gsPhys", dockMag: "gsDockMag", rollNum: "gsRoll" }[k], v ? "1" : "0"); } catch (e) {} }
+    if (k === "launchSt") { try { localStorage.setItem("gsLaunchSt", String(v)); } catch (e) {} }   // deckos-194
+    if (k === "rollNum") document.body.classList.toggle("rl-on", v !== false);
     if (k === "accentSel") { st.accent = effAccent(); bootAccent(st.accent); if (st.flashSel === "accent") st.flash = st.accent; }
     if ((k === "accentSel" || k === "flashSel" || k === "idleGlow") && st.picker === k) st.pk = hexToHsv(pkCur(k));
     if (k === "idleGlow" && idsEl) idsEl.style.setProperty("--glow", idsGlow());
@@ -4089,6 +4164,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       
         if (!hadGame && st.runGame) {
           var sk = st.running, fromShelf = st.osPage === PI("shelf"), recent = Date.now() - (st.lastLaunchAt || 0) < 30000;
+          if (NX.lmActive() || NX.lmOn()) { var toHud = fromShelf || st.osPage === PI("hud") || st.osPage === PI("home") || NX.lmActive(); if (NX.lmRun(sk, toHud)) { st.splash = null; return; } if (toHud) { st.osPage = PI("hud"); } render(); return; }   // deckos-194
           if (fromShelf && sk >= 0 && !recent) { st.holdShelfUntil = Date.now() + 1400; st.focus = sk; render(); snapLaunch(); setTimeout(function () { showSplash(sk, fromShelf); }, 1300); }
           else showSplash(sk, fromShelf);
           return;
@@ -5043,7 +5119,159 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       if (host && !st.monPortrait) setTimeout(function () { send({ type: "edgeflash", k: 0.5, color: ac }); }, 1050);
       setTimeout(function () { ov.remove(); }, 2200);
     }
+    // ===== deckos-194: Spielstart-Animation (Einstellung launchSt: classic | stage | lid | tile | wave) =====
+    var LM = null;
+    function lmMode() { var m = st.launchSt || "wave"; return /^(stage|lid|tile|wave)$/.test(m) ? m : "wave"; }   // „classic“ (alter Start) gibt es nicht mehr – Welle ist das neue Klassisch
+    function lmOn() { return !noMotion() && !st.couch; }
+    function lmArea() { var r = root ? root.getBoundingClientRect() : null; return r && r.width > 50 ? r : { left: 0, top: 0, width: innerWidth, height: innerHeight }; }
+    function lmBox(el, A) { el.style.left = A.left + "px"; el.style.top = A.top + "px"; el.style.width = A.width + "px"; el.style.height = A.height + "px"; return el; }
+    function lmRect(r) { return { left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px" }; }
+    function lmLogo(g, u, big) { return g.logo ? '<img src="' + esc(g.logo) + '" alt="">' : '<div class="lmname" style="font-size:' + Math.round((big ? 64 : 40) * u) + 'px">' + esc(g.name) + "</div>"; }
+    function lmEnd(fast) { var m = LM; LM = null; if (!m) return; clearTimeout(m.tFail); clearTimeout(m.tRun); (m.timers || []).forEach(clearTimeout); m.end(!!fast); }
+    function lmKill(els, fast, dur) { els = els.filter(Boolean); if (fast) { els.forEach(function (e) { e.remove(); }); return; } els.forEach(function (e) { e.animate([{ opacity: getComputedStyle(e).opacity }, { opacity: 0 }], { duration: dur || 600, easing: "ease-in-out", fill: "forwards" }); }); setTimeout(function () { els.forEach(function (e) { e.remove(); }); }, (dur || 600) + 40); }
+    function lmGoHud(toHud) {
+      var wasHud = curName === "hud";
+      if (toHud) { st.osPage = PI("hud"); render(); }
+      if (toHud && wasHud && conts.hud) { var ins = conts.hud.querySelectorAll(".n-in"); ins.forEach(function (e) { e.classList.remove("n-on"); }); conts.hud.getBoundingClientRect(); ins.forEach(function (e, i) { setTimeout(function () { e.classList.add("n-on"); }, 200 + i * 110); }); }
+    }
+    function lmBarFill(bar) { if (!bar) return; var cur = getComputedStyle(bar).transform; bar.getAnimations().forEach(function (a) { a.cancel(); }); bar.animate([{ transform: cur === "none" ? "scaleX(0)" : cur }, { transform: "scaleX(1)" }], { duration: 350, easing: "ease-out", fill: "forwards" }); }
+    function lmBarRun(bar, delay) { bar.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(.9)" }], { duration: 12000, delay: delay, easing: "cubic-bezier(.1,.6,.2,1)", fill: "both" }); }
+    function lmEdge(er, A) { if (host && !st.monPortrait) send({ type: "edgeflash", k: er ? Math.max(0, Math.min(1, (er.left + er.width / 2 - A.left) / A.width)) : 0.5, color: st.flash }); }
+
+    // Vollbild: Cover wächst über das ganze Deck, Logo + Startbalken
+    function lmStage(k, g, el, er, A, u) {
+      var img = g.hero || g.cover, bgImg = img ? "url('" + img + "')" : "linear-gradient(120deg," + g.c[0] + "," + g.c[1] + ")";
+      var ov = lmBox(E("div", "lmov", '<i class="lmimg"></i><i class="lmcov"></i><i class="lmshade"></i>'), A);
+      q(ov, ".lmimg").style.backgroundImage = bgImg; q(ov, ".lmcov").style.backgroundImage = g.cover ? "url('" + g.cover + "')" : bgImg;
+      var fg = lmBox(E("div", "lmfg", '<div class="lmlogo">' + lmLogo(g, u, true) + '</div><div class="lmsub">Wird gestartet</div><div class="lmbar"><i></i></div>'), A);
+      fg.style.setProperty("--flash", st.flash || st.accent || "#fff"); q(fg, ".lmsub").style.fontSize = Math.round(21 * u) + "px"; q(fg, ".lmbar").style.width = Math.round(200 * u) + "px";
+      document.body.appendChild(ov); document.body.appendChild(fg);
+      var full = lmRect(A); full.borderRadius = "0px"; var T0 = er ? 260 : 0, D = 900;
+      if (er) { var gx = er.width * 0.03, gy = er.height * 0.03, from = lmRect(er), from2 = { left: (er.left - gx) + "px", top: (er.top - gy - 12 * u) + "px", width: (er.width + 2 * gx) + "px", height: (er.height + 2 * gy) + "px", offset: T0 / (T0 + D), easing: "cubic-bezier(.65,0,.25,1)" };
+        from.borderRadius = from2.borderRadius = Math.round(16 * u) + "px"; from.easing = "cubic-bezier(.2,.8,.2,1)";
+        ov.animate([from, from2, full], { duration: T0 + D, fill: "backwards" }); q(ov, ".lmcov").animate([{ opacity: 1 }, { opacity: 1, offset: 0.45 }, { opacity: 0 }], { duration: T0 + D + 300, easing: "ease-in-out", fill: "forwards" }); }
+      else { ov.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 600, easing: "ease-out" }); q(ov, ".lmcov").style.opacity = 0; }
+      q(ov, ".lmimg").animate([{ transform: "scale(1.09)" }, { transform: "scale(1.0)" }], { duration: 9000, easing: "cubic-bezier(.2,.6,.3,1)", fill: "forwards" });
+      q(ov, ".lmshade").animate([{ opacity: 0 }, { opacity: 1 }], { duration: 700, delay: T0 + D * 0.5, fill: "forwards" });
+      var tL = T0 + D + 150, lg = q(fg, ".lmlogo");
+      lg.animate([{ opacity: 0, transform: "translateY(-3%) scale(.86)", filter: "blur(8px)" }, { opacity: 1, transform: "translateY(-3%) scale(1)", filter: "blur(0)" }], { duration: 900, delay: tL, easing: SPR, fill: "both" });
+      [q(fg, ".lmsub"), q(fg, ".lmbar")].forEach(function (x) { x.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 500, delay: tL + 450, easing: "ease-out", fill: "both" }); });
+      var bar = q(fg, ".lmbar > i"); lmBarRun(bar, tL + 450);
+      ov.addEventListener("pointerup", function () { st.lmSkip = Date.now(); lmEnd(false); });
+      lmEdge(er, A);
+      return { minT: tL + 1300, end: function (f) { lmKill([fg], f, 300); lmKill([ov], f, 650); },
+        finish: function (toHud, m) { lmBarFill(bar); m.timers.push(setTimeout(function () { lg.animate([{ opacity: 1, transform: "translateY(-3%) scale(1)" }, { opacity: 0, transform: "translateY(-3%) scale(.94)" }], { duration: 420, easing: "ease-in", fill: "forwards" }); lmGoHud(toHud); m.timers.push(setTimeout(function () { if (LM === m) lmEnd(false); }, 180)); }, 380)); } };
+    }
+    // Lidschlag: Deck schließt sich zu einer Lichtlinie und öffnet sich mit dem Spielbild
+    function lmLid(k, g, el, er, A, u) {
+      var img = g.hero || g.cover, bgImg = img ? "url('" + img + "')" : "linear-gradient(120deg," + g.c[0] + "," + g.c[1] + ")";
+      var ov = lmBox(E("div", "lmov", '<i class="lmimg"></i><i class="lmshade" style="opacity:1;background:rgba(0,0,0,.32)"></i>'), A); ov.style.boxShadow = "none"; ov.style.opacity = 0;
+      q(ov, ".lmimg").style.backgroundImage = bgImg;
+      var fg = lmBox(E("div", "lmfg", '<div class="lmlogo">' + lmLogo(g, u, true) + '</div><div class="lmsub">Wird gestartet</div><div class="lmbar"><i></i></div>'), A);
+      fg.style.setProperty("--flash", st.accent || "#E6BF9B"); q(fg, ".lmsub").style.fontSize = Math.round(21 * u) + "px"; q(fg, ".lmbar").style.width = Math.round(200 * u) + "px";
+      var lid = lmBox(E("div", "lmlid", "<b></b><b></b><i></i>"), A); lid.style.setProperty("--flash", st.accent || "#E6BF9B");
+      document.body.appendChild(ov); document.body.appendChild(fg); document.body.appendChild(lid);
+      var t = q(lid, "b:first-child"), b = q(lid, "b:nth-child(2)"), ln = q(lid, "i"), C = 520, O = 1000;
+      t.animate([{ transform: "translateY(-101%)" }, { transform: "translateY(0)", offset: C / 1800 }, { transform: "translateY(0)", offset: O / 1800 }, { transform: "translateY(-101%)" }], { duration: 1800, easing: "cubic-bezier(.65,0,.35,1)", fill: "forwards" });
+      b.animate([{ transform: "translateY(101%)" }, { transform: "translateY(0)", offset: C / 1800 }, { transform: "translateY(0)", offset: O / 1800 }, { transform: "translateY(101%)" }], { duration: 1800, easing: "cubic-bezier(.65,0,.35,1)", fill: "forwards" });
+      ln.animate([{ opacity: 0, transform: "scaleX(0)" }, { opacity: 1, transform: "scaleX(0)", offset: 0.27 }, { opacity: 1, transform: "scaleX(1)", offset: 0.5 }, { opacity: 1, transform: "scaleX(1) scaleY(4)", offset: 0.62 }, { opacity: 0, transform: "scaleX(1) scaleY(1)" }], { duration: 1500, easing: "ease-out", fill: "forwards" });
+      setTimeout(function () { ov.style.opacity = 1; }, O - 40);
+      q(ov, ".lmimg").animate([{ transform: "scale(1.08)" }, { transform: "scale(1.0)" }], { duration: 9000, delay: O, easing: "cubic-bezier(.2,.6,.3,1)", fill: "both" });
+      var tL = O + 350, lg = q(fg, ".lmlogo");
+      lg.animate([{ opacity: 0, transform: "translateY(-3%) scale(.86)", filter: "blur(8px)" }, { opacity: 1, transform: "translateY(-3%) scale(1)", filter: "blur(0)" }], { duration: 900, delay: tL, easing: SPR, fill: "both" });
+      [q(fg, ".lmsub"), q(fg, ".lmbar")].forEach(function (x) { x.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 500, delay: tL + 450, easing: "ease-out", fill: "both" }); });
+      var bar = q(fg, ".lmbar > i"); lmBarRun(bar, tL + 450);
+      ov.addEventListener("pointerup", function () { st.lmSkip = Date.now(); lmEnd(false); });
+      setTimeout(function () { if (host && !st.monPortrait) send({ type: "edgeflash", k: 0.5, color: st.accent }); }, C);
+      return { minT: tL + 1300, end: function (f) { lmKill([fg], f, 300); lmKill([ov, lid], f, 650); },
+        finish: function (toHud, m) { lmBarFill(bar); m.timers.push(setTimeout(function () { lg.animate([{ opacity: 1 }, { opacity: 0, transform: "translateY(-3%) scale(.94)" }], { duration: 420, easing: "ease-in", fill: "forwards" }); lmGoHud(toHud); m.timers.push(setTimeout(function () { if (LM === m) lmEnd(false); }, 180)); }, 380)); } };
+    }
+    // Kachel: Cover dreht sich um, fliegt an den Platz der großen Leistungs-Kachel (mit Spielbild) und wird zu ihr; die übrigen Kacheln bauen sich darum auf
+    function lmTile(k, g, el, er, A, u) {
+      var prev = st.osPage, img = g.hero || g.cover, R = Math.round(30 * u) + "px";
+      var card = E("div", "lmcard", '<div class="lmci"><div class="lmf"></div><div class="lmb"><i></i><u></u><div class="lmbc"><div class="lmsub2">Wird gestartet</div><div class="lmbar"><i></i></div></div></div></div>');
+      card.style.setProperty("--flash", st.flash || st.accent || "#fff");
+      q(card, ".lmf").style.backgroundImage = g.cover ? "url('" + g.cover + "')" : "linear-gradient(120deg," + g.c[0] + "," + g.c[1] + ")";
+      var bi = q(card, ".lmb > i"); bi.style.backgroundImage = img ? "url('" + img + "')" : "linear-gradient(120deg," + g.c[0] + "," + g.c[1] + ")";
+      if (!g.hero) { bi.style.filter = "blur(30px) saturate(1.3)"; bi.style.transform = "scale(1.2)"; bi.style.opacity = ".5"; }
+      q(card, ".lmsub2").style.fontSize = Math.round(18 * u) + "px"; q(card, ".lmbar").style.width = Math.round(220 * u) + "px";
+      // HUD sofort öffnen, Kacheln vorerst verborgen
+      var wasHud = curName === "hud"; st.osPage = PI("hud"); render();
+      var hc = conts.hud, pcl = hc ? q(hc, ".n-pCl") : null; if (hc) hc.classList.add("lm-hold");
+      var tr = null; if (pcl) { var t0s = pcl.style.transition, tfs = pcl.style.transform, fis = pcl.style.filter; pcl.style.transition = "none"; pcl.style.transform = "none"; pcl.style.filter = "none"; tr = pcl.getBoundingClientRect(); pcl.style.transform = tfs; pcl.style.filter = fis; pcl.getBoundingClientRect(); pcl.style.transition = t0s; }   // Endmaß ohne Einblend-Versatz (.n-in)
+      if (!tr || tr.width < 40) { var hh = A.height * 0.66, hw = A.width * 0.4; tr = { left: A.left + (A.width - hw) / 2, top: A.top + (A.height - hh) / 2, width: hw, height: hh }; }
+      var from = er || { left: A.left + A.width / 2 - 150 * u, top: A.top + A.height / 2 - 225 * u, width: 300 * u, height: 450 * u };
+      Object.assign(card.style, lmRect(tr)); document.body.appendChild(card);
+      if (el && er) el.style.visibility = "hidden";
+      var f0 = lmRect(from), f1 = lmRect({ left: from.left, top: from.top - 12 * u, width: from.width, height: from.height }), f2 = lmRect(tr);
+      f0.offset = 0; f1.offset = 0.2; f1.easing = "cubic-bezier(.6,0,.2,1)"; f2.offset = 1;
+      card.animate([f0, f1, f2], { duration: 1150, fill: "backwards" });
+      [q(card, ".lmf"), q(card, ".lmb")].forEach(function (x) { x.animate([{ borderRadius: Math.round(16 * u) + "px" }, { borderRadius: R }], { duration: 1150, fill: "forwards" }); });
+      q(card, ".lmci").animate([{ transform: "rotateY(0deg)" }, { transform: "rotateY(0deg) scale(1.03)", offset: 0.18 }, { transform: "rotateY(180deg)" }], { duration: 1250, easing: SPR, fill: "forwards" });
+      q(card, ".lmbc").animate([{ opacity: 0, transform: "translate(-50%, 12px)" }, { opacity: 1, transform: "translate(-50%, 0)" }], { duration: 500, delay: 1050, easing: "ease-out", fill: "forwards" });
+      var bar = q(card, ".lmbar > i"); lmBarRun(bar, 1150);
+      var tmr = setTimeout(function () {   // gelandet: große Kachel bleibt unter der Karte, die übrigen bauen sich auf
+        if (!hc) return; if (pcl) { pcl.style.visibility = "hidden"; pcl.style.transition = "none"; pcl.classList.add("n-on"); pcl.getBoundingClientRect(); pcl.style.transition = ""; }
+        var ins = [].filter.call(hc.querySelectorAll(".n-in"), function (e) { return e !== pcl; });
+        ins.forEach(function (e) { e.classList.remove("n-on"); }); hc.classList.remove("lm-hold"); hc.getBoundingClientRect();
+        ins.forEach(function (e, i) { setTimeout(function () { e.classList.add("n-on"); }, 40 + i * 100); });
+      }, 950);
+      card.addEventListener("pointerup", function () { st.lmSkip = Date.now(); lmEnd(false); });
+      lmEdge(er, A);
+      var done = false;
+      return { minT: 1500, end: function (f) {
+          clearTimeout(tmr); if (el) el.style.visibility = "";
+          if (hc) { hc.classList.remove("lm-hold"); hc.querySelectorAll(".n-in").forEach(function (e) { e.classList.add("n-on"); }); }
+          if (pcl) { pcl.style.visibility = ""; pcl.classList.add("n-on"); }
+          if (!done && !st.runGame && !wasHud) { st.osPage = prev; render(); }   // Spiel kam nicht: zurück, wo man war
+          lmKill([card], f, 450);
+        },
+        finish: function (toHud, m) {
+          done = true; lmBarFill(bar);
+          m.timers.push(setTimeout(function () {
+            if (toHud && st.osPage !== PI("hud")) { st.osPage = PI("hud"); render(); }
+            q(card, ".lmbc").animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: "forwards" });
+            if (pcl) { pcl.style.visibility = ""; pcl.classList.add("n-on"); }
+            if (LM === m) lmEnd(false);
+          }, 420));
+        } };
+    }
+    // Welle: Farbwelle vom Cover durchs Deck, kein Vollbild; HUD gleitet herein
+    function lmWave(k, g, el, er, A, u, btn) {
+      var col = gColor(g), cx = er ? er.left + er.width / 2 : A.left + A.width / 2, cy = er ? er.top + er.height / 2 : A.top + A.height / 2;
+      var wave = function (c, a1, dur) {
+        var R = Math.max(Math.hypot(cx - A.left, cy - A.top), Math.hypot(A.left + A.width - cx, A.top + A.height - cy)) * 1.15;
+        var w = E("div", "lmwave"); w.style.cssText += ";left:" + (cx - R) + "px;top:" + (cy - R) + "px;width:" + (2 * R) + "px;height:" + (2 * R) + "px;background:radial-gradient(circle, transparent 58%, " + c + " 70%, rgba(255,255,255,.5) 73.5%, transparent 75%)";
+        var clip = lmBox(E("div", "lmlid"), A); clip.style.zIndex = 8999; clip.appendChild(w); w.style.left = (cx - R - A.left) + "px"; w.style.top = (cy - R - A.top) + "px"; w.style.position = "absolute";
+        document.body.appendChild(clip);
+        w.animate([{ transform: "scale(.04)", opacity: a1 }, { transform: "scale(1)", opacity: 0 }], { duration: dur, easing: "cubic-bezier(.2,.6,.3,1)", fill: "forwards" }).onfinish = function () { clip.remove(); };
+        return clip;
+      };
+      wave(col, 0.9, 1500);
+      var pulse = null; if (el && er) { el.animate([{ filter: "brightness(1)" }, { filter: "brightness(1.35) saturate(1.2)", boxShadow: "0 0 " + Math.round(70 * u) + "px " + col, offset: 0.35 }, { filter: "brightness(1)" }], { duration: 900, easing: "ease-out" });
+        pulse = el.animate([{ boxShadow: "0 0 0 " + col }, { boxShadow: "0 0 " + Math.round(46 * u) + "px " + col }, { boxShadow: "0 0 0 " + col }], { duration: 1600, delay: 900, iterations: Infinity, easing: "ease-in-out" }); }
+      var t0 = btn ? btn.textContent : null; if (btn) btn.textContent = "Wird gestartet …";
+      lmEdge(er, A);
+      return { minT: 900, end: function () { if (pulse) pulse.cancel(); if (btn && btn.textContent === "Wird gestartet …") btn.textContent = t0; },
+        finish: function (toHud, m) { wave("rgba(255,255,255,.35)", 0.7, 1200); dir = 1; lmGoHud(toHud); m.timers.push(setTimeout(function () { if (LM === m) lmEnd(false); }, 50)); } };
+    }
+    function launchMoment(k, el, btn) {
+      var g = GAMES[k]; if (!g || !lmOn()) return false;
+      lmEnd(true);
+      var A = lmArea(), u = A.height / 720, er = el ? el.getBoundingClientRect() : null; if (er && (er.width < 20 || er.height < 20)) er = null;
+      var md = lmMode(), m = (md === "lid" ? lmLid : md === "tile" ? lmTile : md === "wave" ? lmWave : lmStage)(k, g, el, er, A, u, btn);
+      m.k = k; m.t0 = Date.now(); m.timers = []; LM = m;
+      m.tFail = setTimeout(function () { if (LM === m) lmEnd(false); }, 45000);   // Spiel kommt nicht: nach 45 s zurück
+      return true;
+    }
+    function lmRun(k, toHud) {
+      if (!LM) { if (!lmOn() || (st.lmSkip && Date.now() - st.lmSkip < 60000) || k < 0 || !GAMES[k]) return false; launchMoment(k, null, null); if (!LM) return false; LM.minT = Math.max(LM.minT, lmMode() === "wave" ? 500 : 2400); }
+      var m = LM, wait = Math.max(0, m.t0 + m.minT - Date.now()); clearTimeout(m.tRun);
+      m.tRun = setTimeout(function () { if (LM === m) m.finish(toHud, m); }, wait);
+      return true;
+    }
     function launchFx(k) {
+      if (lmOn()) { var lc = conts[curName], le = null, lb = null; if (lc && curName === "home" && home.pp) { le = q(home.pp, ".n-cov"); lb = q(home.pp, ".n-go span"); } else if (lc && curName === "shelf" && gaming.ps) { le = q(gaming.ps, '.n-cv[data-pick="' + k + '"]'); lb = q(gaming.ps, ".n-btnw span"); } if (launchMoment(k, le, lb)) return true; }
       var g = GAMES[k], c = conts[curName], el = null, btn = null; if (!g || !c || noMotion()) return false;
       if (curName === "home" && home.pp) { el = q(home.pp, ".n-cov"); btn = q(home.pp, ".n-go span"); }
       else if (curName === "shelf" && gaming.ps) { el = q(gaming.ps, '.n-cv[data-pick="' + k + '"]'); btn = q(gaming.ps, ".n-btnw span"); }
@@ -5158,6 +5386,9 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       update: function () { if (!root || upPending) return; upPending = true; requestAnimationFrame(function () { upPending = false; var p = pages[curName]; if (p && p.built && !sliderDown) p.update(); }); },
       hud: function () { pushHud(); if (curName === "hud" || curName === "sys") NX.update(); },
       launch: function (k) { return launchFx(k); },
+      lmActive: function () { return !!LM; },
+      lmRun: function (k, toHud) { return lmRun(k, toHud); },
+      lmOn: function () { return lmOn(); },
       cur: function () { return curName; },
       wx7: function (o) { f7Open(o); }
     };
@@ -5171,7 +5402,12 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
     var d = new Date(), key = d.getHours() + ":" + d.getMinutes() + ":" + d.getDate();
     if (key !== lastClock) {
       var dayChanged = lastClock && lastClock.split(":")[2] !== key.split(":")[2];
-      lastClock = key; scr().querySelectorAll("[data-clock]").forEach(function (el) { el.innerHTML = clockHTML(); });
+      lastClock = key; scr().querySelectorAll("[data-clock]").forEach(function (el) {
+        var ot = el.querySelector(".tm"), oh = ot && ot.firstChild ? ot.firstChild.textContent : null, om = ot && ot.lastChild ? ot.lastChild.textContent : null;
+        el.innerHTML = clockHTML();
+        var nt = el.querySelector(".tm"); if (!nt || oh == null || st.rollNum === false) return;   // deckos-192: Minuten/Stunden rollen
+        [[nt.firstChild, oh], [nt.lastChild, om]].forEach(function (p) { if (!p[0] || p[0].nodeType !== 3 || p[0].textContent === p[1]) return; var sp = document.createElement("span"), nv = p[0].textContent; sp.textContent = p[1]; sp._rv = p[1]; nt.replaceChild(sp, p[0]); rollTxt(sp, nv); });
+      });
       if (dayChanged) calRecalc();
       bdayCheck();
       if (osIs("home")) { st.homeRoll = !!st.homeTime && st.homeTime !== homeTimeKey(); }
