@@ -4548,7 +4548,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
           var first = this.focusK === -2 && !this.everFocused; this.focusK = k; this.focusId = g ? g.id + g.hero + g.logo : ""; this.everFocused = true;
           q(ps, ".n-rail").querySelectorAll(".n-cv").forEach(function (b, i) { b.classList.toggle("n-f", i === k); });
           var tapped = Date.now() - (st.tapPickAt || 0) < 500;
-          if (cfm) { this.cfTarget = k; if (first || noMotion()) { this.cfPos = k; this.cfV = 0; this.cfLayout(); } else if (!this.cfDragging) this.cfAnim(); }
+          if (cfm) { this.cfTarget = this.cfWrap() ? k + GAMES.length * Math.round((this.cfPos - k) / GAMES.length) : k; if (first || noMotion()) { this.cfPos = k; this.cfV = 0; this.cfLayout(); } else if (!this.cfDragging) this.cfAnim(); }
           var fv = q(ps, '.n-cv[data-pick="' + k + '"]'), rl = q(ps, ".n-rail");
           if (tapped && !first && st.phys && !noMotion() && fv) {   /* Antippen federt, Nachbarn wellen mit (deckos-185) */
             fv.animate([{ scale: "1" }, { scale: ".92", offset: .16 }, { scale: "1.06", offset: .48 }, { scale: ".99", offset: .76 }, { scale: "1" }], { duration: 640, easing: "ease-out" });
@@ -4573,11 +4573,14 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
         this.updFriends(); this.updDl();
       },
       // ---- Coverflow-3D (deckos-185): Position als Kommazahl, Feder zum gewählten Spiel ----
+      // Endloses Karussell (deckos-188): nach dem letzten Spiel kommt wieder das erste – ab 4 Spielen
+      cfWrap: function () { return GAMES.length >= 4; },
       cfLayout: function () {
-        var r = this.cfRail; if (!r || !r.isConnected) return; var p = this.cfPos, kids = r.children;
+        var r = this.cfRail; if (!r || !r.isConnected) return; var p = this.cfPos, kids = r.children, wrap = this.cfWrap(), NN = GAMES.length;
         var half = (r.clientWidth || 1288) / 2 - 138, o1 = Math.min(215, half * 0.55), sp = Math.max(28, Math.min(96, (half - o1) / 3));   // schmale Bühne (16:9): enger stapeln
         for (var i = 0; i < kids.length; i++) { var e = kids[i]; if (!e.classList.contains("n-cv")) continue;
-          var d = i - p, ad = Math.abs(d), c = d < -1 ? -1 : d > 1 ? 1 : d;
+          var d = i - p; if (wrap) { d = ((d % NN) + NN) % NN; if (d > NN / 2) d -= NN; }
+          var ad = Math.abs(d), c = d < -1 ? -1 : d > 1 ? 1 : d;
           if (ad > 5.2) { if (e._cfv !== 0) { e._cfv = 0; e.style.visibility = "hidden"; } continue; }
           if (e._cfv !== 1) { e._cfv = 1; e.style.visibility = ""; }
           var x = (d < 0 ? -1 : 1) * (Math.min(ad, 1) * o1 + Math.max(0, ad - 1) * sp), z = -Math.min(ad, 1) * 220 - Math.max(0, ad - 1) * 30;
@@ -4594,7 +4597,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
           var dt = Math.min(0.05, (now - last) / 1000), tg = self.cfTarget; last = now;
           if (st.phys) { self.cfV += (-170 * (self.cfPos - tg) - 21 * self.cfV) * dt; self.cfPos += self.cfV * dt; }   // Feder mit leichtem Nachschwingen
           else { self.cfPos += (tg - self.cfPos) * (1 - Math.exp(-dt * 11)); self.cfV = 0; }   // ohne Physik: weich, ohne Überschwingen
-          if (Math.abs(self.cfPos - tg) < 0.002 && Math.abs(self.cfV) < 0.02) { self.cfPos = tg; self.cfV = 0; self.cfLayout(); return; }
+          if (Math.abs(self.cfPos - tg) < 0.002 && Math.abs(self.cfV) < 0.02) { self.cfPos = tg; self.cfV = 0; if (self.cfWrap()) self.cfPos = self.cfTarget = mod(Math.round(tg)); self.cfLayout(); return; }
           self.cfLayout(); self.cfRaf = requestAnimationFrame(step);
         };
         this.cfRaf = requestAnimationFrame(step);
@@ -4602,17 +4605,17 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       cfDrag: function (dx) {
         if (!this.cfRail || !st.cflow || !GAMES.length) return;
         if (!this.cfDragging) { this.cfDragging = true; this.cfPos0 = this.cfPos; cancelAnimationFrame(this.cfRaf); this.cfRaf = 0; }
-        var hi = GAMES.length - 1, raw = this.cfPos0 - dx / 150, rub = function (o) { return st.phys ? 0.55 * Math.tanh(o / 1.2) : 0; };   // Gummiband am Ende
-        this.cfPos = raw < 0 ? -rub(-raw) : raw > hi ? hi + rub(raw - hi) : raw; this.cfLayout();
-        var k = Math.max(0, Math.min(hi, Math.round(this.cfPos)));
-        if (k !== st.focus) { st.focus = k; this.cfTarget = k; render(); }
+        var hi = GAMES.length - 1, raw = this.cfPos0 - dx / 150, rub = function (o) { return st.phys ? 0.55 * Math.tanh(o / 1.2) : 0; };   // Gummiband am Ende (nur ohne Endlos-Karussell)
+        this.cfPos = this.cfWrap() ? raw : raw < 0 ? -rub(-raw) : raw > hi ? hi + rub(raw - hi) : raw; this.cfLayout();
+        var k = this.cfWrap() ? mod(Math.round(this.cfPos)) : Math.max(0, Math.min(hi, Math.round(this.cfPos)));
+        if (k !== st.focus) { st.focus = k; this.cfTarget = Math.round(this.cfPos); render(); }
       },
       cfRelease: function (vx) {
         if (!this.cfDragging) return; this.cfDragging = false; var hi = GAMES.length - 1, v = -(vx || 0) * 1000 / 150, tg;
         if (st.phys) { v = Math.max(-40, Math.min(40, v)); tg = Math.round(this.cfPos + v * 0.28); this.cfV = v; }   // Schwung: weiterlaufen, dann einrasten
         else { tg = Math.round(this.cfPos + (Math.abs(v) > 4 ? (v > 0 ? 0.5 : -0.5) : 0)); this.cfV = 0; }
-        tg = Math.max(0, Math.min(hi, tg)); this.cfTarget = tg;
-        if (tg !== st.focus) { st.focus = tg; render(); }
+        if (!this.cfWrap()) tg = Math.max(0, Math.min(hi, tg)); this.cfTarget = tg;
+        if (mod(tg) !== st.focus) { st.focus = mod(tg); render(); }
         this.cfAnim();
       },
       updFriends: function () {
