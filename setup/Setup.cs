@@ -1,4 +1,4 @@
-// GameShelf Deck - Setup mit Einrichtungsassistent (deckos-188, OTA: Setup.exe /update <Ordner>)
+// GameShelf Deck - Setup mit Einrichtungsassistent (deckos-189, OTA: Setup.exe /update <Ordner>)
 // Baut ohne Admin-Rechte pro Benutzer nach %LOCALAPPDATA%\Programs\GameShelf Deck.
 // Programmdateien kommen aus payload.zip (feste Dateiliste); Einstellungen und Daten werden nie ueberschrieben.
 using System;
@@ -19,7 +19,7 @@ using Microsoft.Win32;
 static class App
 {
     public const string Name = "GameShelf Deck";
-    public const string Version = "deckos-188";
+    public const string Version = "deckos-189";
     public const string UninstKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\GameShelfDeck";
     public const string UrlWebView2 = "https://developer.microsoft.com/microsoft-edge/webview2/";
     public const string UrlAfterburner = "https://www.msi.com/Landing/afterburner/graphics-cards";

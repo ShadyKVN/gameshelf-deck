@@ -640,6 +640,8 @@ body.game-on .n-blob, body.game-on .n-hero, body.game-on .n-cov, body.game-on .n
 .n-f7 { left: 16px; background: rgba(26,28,38,.92); transition: width .7s var(--n-spr), opacity .25s ease; z-index: 5; font-variant-numeric: tabular-nums; }
 .n-f7 .f7in { position: absolute; left: 0; top: 0; bottom: 0; display: flex; gap: 30px; padding: 28px 30px 28px 36px; box-sizing: border-box; opacity: 0; transition: opacity .35s ease .12s; }
 .n-f7.on .f7in { opacity: 1; }
+.n-f7.out { transition: width .46s cubic-bezier(.4,0,.2,1), opacity .22s ease-out .26s; }   /* Zuklappen ohne Überschwingen (deckos-189) */
+.n-f7.out .f7in { transition: opacity .14s ease; }
 .n-f7 .f7l { width: 250px; flex: none; display: flex; flex-direction: column; }
 .n-f7 .f7now { display: flex; align-items: center; gap: 14px; margin-top: 18px; } .n-f7 .f7now svg { width: 84px; height: 67px; }
 .n-f7 .f7now b { font-size: 88px; font-weight: 600; line-height: 1; letter-spacing: -2px; }
@@ -716,6 +718,19 @@ body.game-on .n-blob, body.game-on .n-hero, body.game-on .n-cov, body.game-on .n
 .n-pop .n-prow { display: flex; gap: 10px; margin-top: 16px; }
 .n-pop .n-pb { flex: 1; text-align: center; padding: 12px; border-radius: 14px; background: rgba(255,255,255,.1); font-weight: 600; font-size: 15px; }
 .n-pop .n-pb.n-p { background: var(--n-acc); } .n-pop .n-pb.n-done { background: #3fbf72; }
+/* Termin wächst zur großen Karte (deckos-189, wie die Wetterkachel) */
+.n-evx { position: absolute; z-index: 30; border-radius: 24px; overflow: hidden; background: rgba(26,29,42,.985); border: 1px solid rgba(255,255,255,.16); box-shadow: 0 30px 70px rgba(0,0,0,.45); -webkit-backdrop-filter: blur(30px) saturate(1.4); backdrop-filter: blur(30px) saturate(1.4);
+  transition: left .6s var(--n-spr), top .6s var(--n-spr), width .6s var(--n-spr), height .6s var(--n-spr), border-radius .6s, opacity .35s; }
+.n-evx .evxin { position: absolute; inset: 0; display: flex; gap: 44px; align-items: center; padding: 30px 44px; opacity: 0; transform: scale(.97); transition: opacity .3s, transform .45s var(--n-spr); }
+.n-evx.on .evxin { opacity: 1; transform: none; transition-delay: .18s; }
+.n-evx.out { transition: left .44s cubic-bezier(.4,0,.2,1), top .44s cubic-bezier(.4,0,.2,1), width .44s cubic-bezier(.4,0,.2,1), height .44s cubic-bezier(.4,0,.2,1), border-radius .44s, opacity .22s .24s ease-out, box-shadow .44s; box-shadow: none; }
+.n-evx.out .evxin { transition: opacity .14s, transform .3s; transform: scale(.94); }
+.n-evx .evxd { flex: none; width: 190px; height: 190px; border-radius: 50%; display: grid; place-content: center; text-align: center; border: 6px solid color-mix(in srgb, var(--evc, #8fb4ff) 80%, transparent); box-shadow: 0 0 40px color-mix(in srgb, var(--evc, #8fb4ff) 30%, transparent); }
+.n-evx .evxd b { font-size: 26px; letter-spacing: .12em; color: var(--evc, #8fb4ff); } .n-evx .evxd span { font-size: 72px; font-weight: 700; line-height: 1; margin-top: 4px; } .n-evx .evxd em { font-style: normal; font-size: 18px; color: var(--n-sub); margin-top: 6px; }
+.n-evx .evxt { flex: 1 1 0; min-width: 0; } .n-evx .evxt h4 { font-size: 46px; font-weight: 700; line-height: 1.08; margin: 10px 0 0; letter-spacing: -.5px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.n-evx .evxt p { font-size: 20px; color: var(--n-sub); margin: 12px 0 0; line-height: 1.45; }
+.n-evx .n-prow { display: flex; gap: 12px; margin-top: 26px; max-width: 560px; }
+.n-evx .n-pb { flex: 1; text-align: center; padding: 15px; border-radius: 16px; background: rgba(255,255,255,.1); font-weight: 600; font-size: 17px; } .n-evx .n-pb.n-p { background: var(--n-acc); color: #111; } .n-evx .n-pb.n-done { background: #3fbf72; color: #04140a; }
 .n-hPlay { padding: 28px; }
 /* 16:9: „Weiterspielen“ als breites Band unter Uhr und „Dein Tag“ (Entwurf A, 13.11.) */
 .n-hPlay.n-band2 .n-cov { left: 26px; top: 24px; width: var(--cw, 180px); height: calc(100% - 48px); }
@@ -4256,10 +4271,10 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
         f7Last = Date.now(); f7Arm();
       } else {
         if (!f7El) return; var el = f7El; f7El = null;
-        el.classList.remove("on"); el.style.width = home.tW + "px"; el.style.opacity = "0"; el.style.transitionDelay = "0s, .35s";
+        el.classList.remove("on"); el.classList.add("out"); el.style.width = home.tW + "px"; el.style.opacity = "0";
         if (home.pt) home.pt.classList.remove("f7fade");
-        [home.pd, home.pp].forEach(function (x) { if (x) { x.classList.remove("f7push"); x.style.transform = ""; } });
-        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 700);
+        [home.pd, home.pp].forEach(function (x) { if (x) { x.style.transition = "transform .46s cubic-bezier(.4,0,.2,1), filter .35s ease"; x.classList.remove("f7push"); x.style.transform = ""; setTimeout(function () { x.style.transition = ""; }, 520); } });   // Kacheln gleiten synchron zurück
+        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 560);
       }
     }
     function f7Arm() { clearTimeout(f7T); f7T = setTimeout(function () { if (Date.now() - f7Last >= 29000) f7Open(false); else f7Arm(); }, 30000 - (Date.now() - f7Last)); }   // nach 30 s ohne Berührung zurück
@@ -4475,9 +4490,12 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       },
       tap: function (e) {
         var ev = e.target.closest(".n-ev"), pop = q(this.pd, ".n-pop");
+        if (this.evx && e.target.closest(".n-evx")) { var ex = this.evx, rb2 = e.target.closest("[data-nxrem]"); if (rb2 && !rb2.classList.contains("n-done")) { remind(ex._ev); rb2.classList.add("n-done"); rb2.textContent = "Erinnerung gesetzt"; } if (e.target.closest("[data-nxroute]")) send({ type: "openuri", uri: "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(ex._ev.loc) }); if (!e.target.closest("button")) this.evxClose(); else this.evxArm(); return true; }   // Tipp auf die Karte (nicht auf einen Knopf) schließt sie
+        if (this.evx) { this.evxClose(); return true; }   // Tipp außerhalb schließt die Karte
         if (e.target.closest(".n-pop")) { var rb = e.target.closest("[data-nxrem]"); if (rb && !rb.classList.contains("n-done")) { remind(pop._ev); rb.classList.add("n-done"); rb.textContent = "Erinnerung gesetzt"; } var rt = e.target.closest("[data-nxroute]"); if (rt) send({ type: "openuri", uri: "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(pop._ev.loc) }); return true; }
         var nb = e.target.closest(".n-next"); if (nb && this.pd._nx) ev = { _ev: this.pd._nx, getBoundingClientRect: function () { return nb.getBoundingClientRect(); } };
         if (!ev) { if (pop.classList.contains("n-on")) { pop.classList.remove("n-on"); return true; } return false; }
+        if (ev.nodeType === 1 || nb) { this.evxOpen(ev._ev, ev.nodeType === 1 ? ev : nb); return true; }   // deckos-189: Karte wächst statt Popup
         var x = ev._ev, now = Date.now(), r = ev.getBoundingClientRect(), pr = this.pd.getBoundingClientRect(), rem = x.t0 - 30 * 60000;
         pop._ev = x;
         pop.innerHTML = '<div class="n-lab" style="color:#8fb4ff">' + esc(dayLabel(new Date(x.t0))) + (x.t0 > now ? " · " + esc(inTxt(x.t0 - now)) : x.t1 > now ? " · läuft" : " · vorbei") + "</div><h4>" + esc(x.title) + "</h4><p>" + (x.allDay ? "ganztägig" : hm(x.t0) + " – " + hm(x.t1)) + (x.loc ? " · " + esc(x.loc) : "") + (x.cal ? "<br>" + esc(x.cal) : "") + "</p>" +
@@ -4487,6 +4505,36 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
         return true;
       }
     };
+    // Termin-Karte: wächst aus der angetippten Kachel bis über „Dein Tag“; Tipp außerhalb oder 30 s Ruhe schließt (deckos-189)
+    function relPos(el, anc) { var x = 0, y = 0; while (el && el !== anc) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; } return { x: x, y: y }; }
+    home.evxOpen = function (x, src) {
+      if (this.evx) this.evxClose(true);
+      var pd = this.pd, now = Date.now(), rem = x.t0 - 30 * 60000, d = new Date(x.t0), WD = ["SO", "MO", "DI", "MI", "DO", "FR", "SA"], col = x.color || "#8fb4ff";
+      var html = '<div class="evxin"><div class="evxd"><b>' + WD[d.getDay()] + "</b><span>" + d.getDate() + "</span><em>" + (x.allDay ? "ganztägig" : hm(x.t0)) + "</em></div>" +
+        '<div class="evxt"><div class="n-lab" style="color:' + col + '">' + esc(dayLabel(d)) + (x.t0 > now ? " · " + esc(inTxt(x.t0 - now)) : x.t1 > now ? " · läuft" : " · vorbei") + "</div><h4>" + esc(x.title) + "</h4><p>" + (x.allDay ? "ganztägig" : hm(x.t0) + " – " + hm(x.t1)) + (x.loc ? "<br>" + esc(x.loc) : "") + (x.cal ? "<br>" + esc(x.cal) : "") + "</p>" +
+        '<div class="n-prow">' + (x.loc ? '<button type="button" class="n-pb" data-nxroute="1">Route</button>' : "") + (rem > now ? '<button type="button" class="n-pb n-p' + (reminders[x.t0 + "|" + x.title] ? " n-done" : "") + '" data-nxrem="1">' + (reminders[x.t0 + "|" + x.title] ? "Erinnerung gesetzt" : "Erinnern " + hm(rem)) + "</button>" : "") + "</div></div></div>";
+      var el = E("div", "n-evx", html), p0 = relPos(src, pd); el._ev = x; el._src = src; el.style.setProperty("--evc", col);
+      el.style.cssText += ";left:" + p0.x + "px;top:" + p0.y + "px;width:" + src.offsetWidth + "px;height:" + src.offsetHeight + "px;border-radius:" + (getComputedStyle(src).borderRadius || "24px");
+      pd.appendChild(el); this.evx = el; void el.offsetWidth;
+      if (noMotion()) el.style.transition = "none";
+      el.style.left = "16px"; el.style.top = "16px"; el.style.width = (pd.clientWidth - 32) + "px"; el.style.height = (pd.clientHeight - 32) + "px"; el.style.borderRadius = "24px"; el.classList.add("on");
+      this.evxArm();
+    };
+    home.evxArm = function () { var self = this; clearTimeout(this.evxT); this.evxT = setTimeout(function () { self.evxClose(); }, 30000); };
+    home.evxClose = function (quick) {
+      var el = this.evx; if (!el) return; this.evx = null; clearTimeout(this.evxT);
+      if (quick || noMotion()) { el.remove(); return; }
+      var src = el._src, pd = this.pd; el.classList.remove("on"); el.classList.add("out");   // Schließen: ohne Überschwingen zurück in die Kachel, Inhalt zuerst weg, am Ende weich ausblenden
+      if (src && src.isConnected && pd.contains(src)) { var p = relPos(src, pd); el.style.left = p.x + "px"; el.style.top = p.y + "px"; el.style.width = src.offsetWidth + "px"; el.style.height = src.offsetHeight + "px"; el.style.borderRadius = getComputedStyle(src).borderRadius || "24px"; }
+      el.style.opacity = "0";
+      setTimeout(function () { el.remove(); }, 520);
+    };
+    // Tipp auf Dock/Kopfzeile oder anderswo außerhalb schließt die Karte (wie beim Wetter)
+    document.addEventListener("click", function (e) {
+      if (!home.evx || !e.target || !e.target.closest || e.target.closest(".n-evx, .menu, .cc, .volosd")) return;
+      if (e.target.closest(".osdock, .nxtop") && e.target.closest("button, a, input, [data-os], [data-act], [data-voice], .island, .osdc, .osbat, .osclock")) { home.evxClose(true); return; }
+      e.stopPropagation(); e.preventDefault(); home.evxClose();
+    }, true);
     function self0() { return false; }
     var reminders = {};
     function remind(x) {
