@@ -5325,9 +5325,9 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
       c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 350, delay: d0 + 350, fill: "backwards" });
       setTimeout(function () {
         var t1 = tf(); c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: "forwards" }); clearTimeout(blurT); setTimeout(function () { document.body.classList.remove("sum-on"); }, 250);
-        if (t1) el.animate([{ transform: "none", borderRadius: "40px", opacity: 1 }, Object.assign({ opacity: 1, offset: 0.85 }, t1), Object.assign({ opacity: 0 }, t1)], { duration: 620, easing: "cubic-bezier(.6,0,.3,1)", fill: "forwards" }).onfinish = function () { el.remove(); };
+        if (t1) el.animate([{ transform: "none", borderRadius: "40px", opacity: 1 }, Object.assign({ opacity: 1, offset: 0.85 }, t1), Object.assign({ opacity: 0 }, t1)], { duration: 500, easing: "cubic-bezier(.6,0,.3,1)", fill: "forwards" }).onfinish = function () { el.remove(); };
         else el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: "forwards" }).onfinish = function () { el.remove(); };
-      }, d0 + 4100);
+      }, d0 + 2650);   // 0,75 s rein · 1,9 s stehend · 0,5 s zurück
     }
     function lmMeasure(el) {   // Endmaß ohne Einblend-Versatz (.n-in) der umgebenden Kachel
       var p = el.closest(".n-in"), keep = p ? [p.style.transition, p.style.transform, p.style.filter] : null;
