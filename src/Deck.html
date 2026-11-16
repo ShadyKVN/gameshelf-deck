@@ -1347,6 +1347,17 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
 /* --- Gaming --- */
 .nxroot .n-cv.n-f { box-shadow: 0 0 0 3px #fff, 0 18px 50px rgba(0,0,0,.55), 0 0 60px color-mix(in srgb, var(--rv-acc) 45%, transparent) !important; }
 .nxroot .n-gStage { background: rgba(9,10,15,.3) !important; }
+/* deckos-185: Coverflow-3D (Schalter cflow) und echte Physik (Schalter phys) */
+.n-gTitle { display: none; }
+.n-cf .n-gTitle { display: block; margin-top: 16px; font-size: 46px; font-weight: 800; line-height: 1.06; letter-spacing: -1px; max-width: 560px; text-shadow: 0 6px 30px rgba(0,0,0,.5); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.n-cf .n-gInfo { width: 580px; top: 74px; }
+.n-cf .n-gLogo { display: none; }
+.n-cf .n-hero { filter: blur(60px) saturate(1.35) brightness(.85); transform: scale(1.35); animation: none; }
+.n-cf .n-heroShade { background: linear-gradient(90deg, rgba(8,9,14,.9) 0%, rgba(8,9,14,.6) 30%, rgba(8,9,14,.3) 100%); }
+.n-cf .n-rail { left: 600px; right: 0; top: 0; bottom: 0; height: auto; padding: 0; display: block; overflow: hidden; perspective: 1500px; pointer-events: auto; touch-action: none; }
+.n-cf .n-cv { position: absolute; left: 50%; top: 50%; width: 236px; height: 354px; margin: -206px 0 0 -118px; opacity: 1; border-radius: 18px; transition: none; box-shadow: 0 22px 50px rgba(0,0,0,.5); -webkit-box-reflect: below 10px linear-gradient(transparent 62%, rgba(255,255,255,.26)); }
+.nxroot .n-cf .n-cv.n-f { width: 236px; height: 354px; box-shadow: 0 26px 60px rgba(0,0,0,.6), 0 0 70px color-mix(in srgb, var(--rv-acc) 30%, transparent) !important; }
+.phtrail { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 2147483000; }
 
 /* --- Makros: Gruppenkästen weg, Tasten liegen direkt auf der Bühne --- */
 .deckroot .nxroot .n-mgrp, .deckroot:not(.light) .nxroot .n-mgrp { background: none !important; border-color: transparent !important; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; overflow: visible; }
@@ -1540,6 +1551,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
   var st = { ui: "os", clockStyle: "digital", agendaMode: "stack", menuTab: "general", touchOnly: false, osPage: 2, hue: null, bright: null, dcUp: false, macroCustom: "", mode: "auto", form: "reel", style: "glas", dtheme: "dark", dcpos: "a", share: 0.6, accent: "#3B82F6", flash: "#7FB2FF",
     menu: false, dc: "off", prevDc: null, monPortrait: true, rtss: "off", focus: 0, running: -1, runGame: null, started: 0, launching: -1, vramTotal: 16, user: { name: "", avatar: "" }, zoom: 1, discordSplit: true, autostart: true, flashSel: "#7FB2FF",
     accentSel: "accent", sysAccent: "#3B82F6", bg: "deck", blur: "light", tint: "mid", tone: "system", sysLight: false, modHue: true, modMusic: true, modVoice: true, modMixer: true, modStats: true, fsVol: true, fsPad: true, fsBat: true, fsWa: true, fsCl: true, photoOn: true, fsAch: true, fsOk: true, fsFr: true, fsHeat: true, fsMus: true, fsDl: true, hudArt: true, media: null, mixer: [], voice: { mic: false, deaf: false }, ctx: null, sg: null, holdShelfUntil: 0 };
+  try { st.cflow = localStorage.getItem("gsCflow") !== "0"; st.phys = localStorage.getItem("gsPhys") !== "0"; } catch (e) { st.cflow = true; st.phys = true; }   // deckos-185, gespeichert wie rvStage
   var hud = { fps: 0, low: null, ft: 0, gpu: 0, cpu: 0, gt: 0, ct: 0, vram: 0, pw: 0, hist: [] };
   for (var i0 = 0; i0 < 120; i0++) hud.hist.push(0);
 
@@ -1708,6 +1720,9 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       ["#", "Kalender"],
       ["calLinks", "iCloud-Abo-Links", "", null]]],
     ["", "game", "Gaming & Discord", "M6 9h12a4 4 0 0 1 0 8c-1.5 0-2.5-1-3.5-2h-5c-1 1-2 2-3.5 2a4 4 0 0 1 0-8zM8 11v3M6.5 12.5h3M16 12h0M18 13.5h0", [
+      ["#", "Gaming-Tab"],
+      ["cflow", "Coverflow (3D-Cover)", "", SW, "Cover schräg in 3D mit Spiegelung. Aus: Cover-Leiste wie bisher."],
+      ["phys", "Echte Physik", "", SW, "Schwung mit Einrasten, Gummiband, federnde Cover und Lichtspur unter dem Finger."],
       ["#", "Discord"],
       ["discordSplit", "Discord-Fenster andocken", "", SW],
       ["dcpos", "Seite", "D", [["a", "Oben"], ["b", "Unten"]]],
@@ -3418,6 +3433,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
     if (v === "true") v = true; else if (v === "false") v = false;
     if (k === "flashSel") st.flash = v === "accent" ? st.accent : v;
     st[k] = v;
+    if (k === "cflow" || k === "phys") { try { localStorage.setItem(k === "cflow" ? "gsCflow" : "gsPhys", v ? "1" : "0"); } catch (e) {} }
     if (k === "accentSel") { st.accent = effAccent(); bootAccent(st.accent); if (st.flashSel === "accent") st.flash = st.accent; }
     if ((k === "accentSel" || k === "flashSel" || k === "idleGlow") && st.picker === k) st.pk = hexToHsv(pkCur(k));
     if (k === "idleGlow" && idsEl) idsEl.style.setProperty("--glow", idsGlow());
@@ -3536,7 +3552,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
     if (a === "pkdone") { st.picker = null; render(); return; }
     if (a === "idleprev") { closeSheet(); send({ type: "idleprev" }); return; }
     if (a === "eyedrop") { eyeDrop(); return; }
-    if (t.hasAttribute("data-pick")) { st.focus = +t.getAttribute("data-pick"); render(); return; }
+    if (t.hasAttribute("data-pick")) { st.focus = +t.getAttribute("data-pick"); st.tapPickAt = Date.now(); render(); return; }
     if (a === "launch") {
       if (st.focus === st.running) { osGo(PI("hud")); return; }
       st.menu = false; st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[st.focus].id }); snapLaunch();
@@ -3618,7 +3634,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
     if ((OS_PAGES[st.osPage][0] === "shelf") && N) {
       var rail = scr().querySelector(".nxroot .n-rail"), cv0 = rail && rail.querySelector(".n-cv"), nxr = scr().querySelector(".nxroot");
       if (rail && cv0 && nxr) { var rr = rail.getBoundingClientRect(), cr = cv0.getBoundingClientRect(), kz = nxr.getBoundingClientRect().width / window.innerWidth || 1, ex = e.clientX * kz, ey = e.clientY * kz;
-        if (ex >= rr.left && ex <= rr.right && ey >= cr.top - 10 && ey <= cr.bottom + 10) {   // nur auf Höhe der Cover-Leiste
+        if (ex >= rr.left && ex <= rr.right && (st.cflow ? ey >= rr.top && ey <= rr.bottom : ey >= cr.top - 10 && ey <= cr.bottom + 10)) {   // nur auf Höhe der Cover-Leiste
           e.preventDefault(); var wd2 = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX, nw3 = Date.now();
           if (Math.abs(wd2) > 2 && nw3 - railWheelAt > 60) { railWheelAt = nw3; st.focus = mod(st.focus + (wd2 > 0 ? 1 : -1)); render(); }
           return;
@@ -3683,7 +3699,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
   scr().addEventListener("pointerdown", function (e) {
     if (e.pointerType !== "touch") return;
     var ls = e.target.closest(".libscroll, .hscroll"), vs = e.target.closest(".vscroll"), stk = e.target.closest("[data-stack]");
-    tStart = { x: e.clientX, y: e.clientY, t: Date.now(), ls: ls, sl: ls ? ls.scrollLeft : 0, vs: vs, st0: vs ? vs.scrollTop : 0, ctl: !!e.target.closest("input"), moved: false, stk: !!stk, cal: !!e.target.closest("[data-calmonth]") };
+    tStart = { x: e.clientX, y: e.clientY, t: Date.now(), ls: ls, sl: ls ? ls.scrollLeft : 0, vs: vs, st0: vs ? vs.scrollTop : 0, ctl: !!e.target.closest("input"), moved: false, stk: !!stk, cal: !!e.target.closest("[data-calmonth]"), cf: !!(st.cflow && e.target.closest(".n-cfr")) };
     clearTimeout(lpT);
     var tgt = e.target, cx = e.clientX, cy = e.clientY;
     lpT = setTimeout(function () { if (!tStart || tStart.moved) return; lpAt = Date.now(); eatClick = true; if (tgt.closest && tgt.closest(".hphin")) { phEditOpen(); return; } if (tgt.closest && tgt.closest("[data-hclock]")) { cycleClock(); return; } openCtx(tgt, cx, cy); }, 500);
@@ -3694,13 +3710,16 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
     if (!tStart.moved && Math.abs(dx) + Math.abs(dy) > 12) { tStart.moved = true; clearTimeout(lpT); }
     if (tStart.ctl) return;
     var smp = tStart.smp || (tStart.smp = []); smp.push({ t: performance.now(), x: e.clientX, y: e.clientY }); if (smp.length > 6) smp.shift();
+    if (tStart.moved && (tStart.cf || (tStart.ls && tStart.ls.classList.contains("n-rail")))) trailAdd(e.clientX, e.clientY);   // Lichtspur (deckos-185)
+    if (tStart.cf) { if (tStart.moved) NX.cfDrag(dx / (st.zoom || 1)); return; }
     if (tStart.ls && tStart.moved) { var lsx = tStart.ls, wantX = tStart.sl - dx / (st.zoom || 1), maxX = lsx.scrollWidth - lsx.clientWidth; lsx.scrollLeft = wantX; if (!noMotion() && maxX > 0) rubberSet(lsx, "x", wantX < 0 ? wantX : wantX > maxX ? wantX - maxX : 0); }
     if (tStart.vs && tStart.moved && Math.abs(dy) > Math.abs(dx)) { var vsy = tStart.vs, wantY = tStart.st0 - dy / (st.zoom || 1), maxY = vsy.scrollHeight - vsy.clientHeight; vsy.scrollTop = wantY; if (!noMotion() && maxY > 0) rubberSet(vsy, "y", wantY < 0 ? wantY : wantY > maxY ? wantY - maxY : 0); }
   });
   scr().addEventListener("pointerup", function (e) {
     clearTimeout(lpT);
     if (!tStart || e.pointerType !== "touch") return;
-    var dx = e.clientX - tStart.x, dy = e.clientY - tStart.y, ls = tStart.ls, moved = tStart.moved, ctl = tStart.ctl, vs = tStart.vs, stk = tStart.stk, calS = tStart.cal, smp = tStart.smp || []; tStart = null;
+    var dx = e.clientX - tStart.x, dy = e.clientY - tStart.y, ls = tStart.ls, moved = tStart.moved, ctl = tStart.ctl, vs = tStart.vs, stk = tStart.stk, calS = tStart.cal, smp = tStart.smp || [], cfT = tStart.cf; tStart = null;
+    if (cfT) { var cvx = 0; if (moved) { eatClick = true; if (smp.length > 1) { var c0 = smp[0], c1 = smp[smp.length - 1]; if (performance.now() - c1.t < 90) cvx = (c1.x - c0.x) / Math.max(1, c1.t - c0.t) / (st.zoom || 1); } } NX.cfRelease(cvx); return; }
     var rbx = ls && ls._rb, rby = vs && vs._rb; rubberRelease(ls, "x"); rubberRelease(vs, "y");
     if (stk && Math.abs(dy) > 40 && Math.abs(dy) > Math.abs(dx)) { eatClick = true; stackGo(dy < 0 ? 1 : -1); return; }
     if (calS && Math.abs(dy) > 40 && Math.abs(dy) > Math.abs(dx)) { eatClick = true; rubberRelease(ls, "x"); rubberRelease(vs, "y"); calShift(dy < 0 ? 1 : -1); return; }
@@ -3709,14 +3728,14 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
     if (moved && smp.length > 1) {
       var s0 = smp[0], s1 = smp[smp.length - 1], dt = Math.max(1, s1.t - s0.t), z = st.zoom || 1;
       if (vs && Math.abs(dy) > Math.abs(dx)) { if (!rby) fling(vs, "scrollTop", -(s1.y - s0.y) / dt / z); }
-      else if (ls && !rbx) fling(ls, "scrollLeft", -(s1.x - s0.x) / dt / z);
+      else if (ls && !rbx) { if (st.phys && ls.classList.contains("n-rail") && !noMotion()) snapFling(ls, -(s1.x - s0.x) / dt / z); else fling(ls, "scrollLeft", -(s1.x - s0.x) / dt / z); }
     }
     if (vs && Math.abs(dy) > Math.abs(dx)) return;
     if (ls) return;
     if ((Math.abs(dx) > 90) && Math.abs(dx) > Math.abs(dy) * 1.3 && !st.menu && !st.ctx && !st.sg) { osGo(st.osPage + (dx < 0 ? 1 : -1)); return; }
     if (Math.abs(dy) > 40 && Math.abs(dy) > Math.abs(dx) && effMode() === "shelf" && st.form === "reel" && N) spin(dy < 0 ? 1 : -1);
   });
-  scr().addEventListener("pointercancel", function () { clearTimeout(lpT); if (tStart) { rubberRelease(tStart.ls, "x"); rubberRelease(tStart.vs, "y"); } tStart = null; });
+  scr().addEventListener("pointercancel", function () { clearTimeout(lpT); if (tStart && tStart.cf) NX.cfRelease(0); if (tStart) { rubberRelease(tStart.ls, "x"); rubberRelease(tStart.vs, "y"); } tStart = null; });
   // Nachlauf mit Abbremsen, im Bildtakt des Monitors (60 Hz am Edge)
   var flingId = 0;
   // Scroll-Federn: am Listenende gibt der Inhalt mit Widerstand nach und federt zurueck
@@ -3732,6 +3751,39 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
   function rubberBump(el, axis, amt) {
     if (noMotion() || Date.now() - (el._rbAt || 0) < 450) return; el._rbAt = Date.now(); var d = (-amt).toFixed(1) + "px";
     rubberKids(el).forEach(function (c) { c.animate([{ translate: "0 0" }, { translate: axis === "x" ? d + " 0" : "0 " + d, offset: .3 }, { translate: "0 0" }], { duration: 620, easing: "cubic-bezier(.25,.8,.3,1)" }); });
+  }
+  // Echte Physik (deckos-185): Cover-Leiste läuft mit Schwung aus und rastet am nächsten Cover ein
+  function snapFling(el, v) {
+    var kids = el.querySelectorAll(".n-cv"); if (kids.length < 2) { fling(el, "scrollLeft", v); return; }
+    var max = el.scrollWidth - el.clientWidth, proj = el.scrollLeft + v * 280, best = 0, bd = Infinity;
+    Array.prototype.forEach.call(kids, function (c) { var p = Math.max(0, Math.min(max, c.offsetLeft - 40)), dd = Math.abs(p - proj); if (dd < bd) { bd = dd; best = p; } });
+    if (proj >= max) best = max;
+    var id = ++flingId, x = el.scrollLeft, vel = v * 1000, last = performance.now();
+    var step = function (now) {
+      if (id !== flingId || !el.isConnected) return; var dt = Math.min(0.04, (now - last) / 1000); last = now;
+      vel += (-90 * (x - best) - 16 * vel) * dt; x += vel * dt;
+      if (x < 0 || x > max) { var hit = vel; x = Math.max(0, Math.min(max, x)); vel = 0; if (Math.abs(hit) > 300) rubberBump(el, "x", (hit > 0 ? 1 : -1) * Math.min(34, Math.abs(hit) / 40)); }
+      el.scrollLeft = x;
+      if (Math.abs(x - best) > 0.5 || Math.abs(vel) > 5) requestAnimationFrame(step); else el.scrollLeft = best;
+    };
+    requestAnimationFrame(step);
+  }
+  // Lichtspur unter dem Finger beim Wischen über die Cover (nur mit „Echte Physik“)
+  var trail = { cv: null, pts: [], raf: 0 };
+  function trailAdd(x, y) {
+    if (!st.phys || noMotion()) return;
+    if (!trail.cv) { trail.cv = document.createElement("canvas"); trail.cv.className = "phtrail"; document.body.appendChild(trail.cv); }
+    trail.pts.push({ x: x, y: y, t: performance.now() }); if (trail.pts.length > 40) trail.pts.shift();
+    if (!trail.raf) trail.raf = requestAnimationFrame(trailDraw);
+  }
+  function trailDraw(now) {
+    trail.raf = 0; var c = trail.cv, dpr = window.devicePixelRatio || 1, W = window.innerWidth, H = window.innerHeight;
+    if (c.width !== Math.round(W * dpr) || c.height !== Math.round(H * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    var g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    var LIFE = 230, P = trail.pts = trail.pts.filter(function (p) { return now - p.t < LIFE; });
+    g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = st.accent || "#fff";
+    for (var i = 1; i < P.length; i++) { var a = 1 - (now - P[i].t) / LIFE; g.globalAlpha = 0.5 * a; g.lineWidth = (4 + 16 * a) * (st.zoom || 1); g.beginPath(); g.moveTo(P[i - 1].x, P[i - 1].y); g.lineTo(P[i].x, P[i].y); g.stroke(); }
+    g.globalAlpha = 1; if (P.length) trail.raf = requestAnimationFrame(trailDraw);
   }
   function fling(el, prop, v) {
     if (Math.abs(v) < 0.25) return;
@@ -4359,16 +4411,18 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
         var sW = NW ? 460 : 622, gW = RW - 32 - 18 - sW;
         var ps = panel("n-gStage", 16, gW);
         ps.innerHTML = '<div class="n-hero"></div><div class="n-hero" style="opacity:0"></div><div class="n-heroShade"></div><div class="n-gLogo n-gLogoR"></div>' +   /* Logo groß rechts oben über dem Titelbild (02.11.) */
-          '<div class="n-gInfo"><div class="n-lab n-gl"></div><div class="n-gMeta"></div>' +
+          '<div class="n-gInfo"><div class="n-lab n-gl"></div><div class="n-gTitle"></div><div class="n-gMeta"></div>' +
           '<div class="n-gBtns"><button type="button" class="n-btnw" data-act="launch"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#111"/></svg><span>Spielen</span></button><button type="button" class="n-btng" data-nxa="files">Ordner</button><button type="button" class="n-btng" data-nxa="achv">Erfolge</button></div></div>' +
           '<div class="n-rail hscroll"></div>';
         c.appendChild(ps); this.ps = ps; this.heros = ps.querySelectorAll(".n-hero"); this.flip = 0;
         var sd = panel("n-gSide", RW - 16 - sW, sW, "display:flex;flex-direction:column");
         sd.innerHTML = '<div class="n-row" style="justify-content:space-between"><div class="n-lab">Freunde</div><div class="n-lab n-gfn"></div></div><div class="n-tgs"></div><div class="n-frl vscroll"></div><div class="n-dlb" style="display:none"><div class="n-spin"></div><div class="n-t"><b></b><span></span></div><div class="n-lab" style="color:#57CBDE">Steam</div></div>';
-        c.appendChild(sd); this.sd = sd; this.built = true; this.lh = 0; this.railKey = ""; this.focusK = -2; this.frKey = ""; this.frPrev = null; this.newUntil = {};
+        c.appendChild(sd); this.sd = sd; this.built = true; this.lh = 0; this.railKey = ""; this.focusK = -2; this.frKey = ""; this.cfMode = null; this.cfPos = 0; this.cfV = 0; this.cfTarget = 0; this.cfRaf = 0; this.cfDragging = false; this.frPrev = null; this.newUntil = {};
       },
       update: function () {
         if (!this.built) return; var self = this, ps = this.ps;
+        var cfm = !!st.cflow;
+        if (cfm !== this.cfMode) { this.cfMode = cfm; ps.classList.toggle("n-cf", cfm); var rl0 = q(ps, ".n-rail"); rl0.classList.toggle("hscroll", !cfm); rl0.classList.toggle("n-cfr", cfm); rl0.scrollLeft = 0; this.railKey = ""; this.focusK = -2; this.everFocused = false; cancelAnimationFrame(this.cfRaf); this.cfRaf = 0; this.cfDragging = false; }
         var rk = GAMES.map(function (g) { return g.id + (g.cover || ""); }).join("|") + "|" + st.running;
         if (rk !== this.railKey) {
           this.railKey = rk; var rail = q(ps, ".n-rail"); rail.innerHTML = "";
@@ -4379,14 +4433,22 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
           });
           if (!GAMES.length) rail.innerHTML = '<div class="n-empty" style="padding:0 0 60px">Keine installierten Spiele gefunden.</div>';
           this.focusK = -2;
+          if (cfm) { this.cfRail = rail; this.cfPos = this.cfTarget = Math.max(0, Math.min(GAMES.length - 1, st.focus)); this.cfV = 0; this.cfLayout(); }
         }
         var k = Math.max(0, Math.min(GAMES.length - 1, st.focus)), g = gameAt(k);
         if (k !== this.focusK || (g && this.focusId !== g.id + g.hero + g.logo)) {
           var first = this.focusK === -2 && !this.everFocused; this.focusK = k; this.focusId = g ? g.id + g.hero + g.logo : ""; this.everFocused = true;
           q(ps, ".n-rail").querySelectorAll(".n-cv").forEach(function (b, i) { b.classList.toggle("n-f", i === k); });
-          var fv = q(ps, '.n-cv[data-pick="' + k + '"]'), rl = q(ps, ".n-rail"); if (fv && rl) { var want = fv.offsetLeft - 40 - Math.max(0, (rl.clientWidth - 260) * 0.15); if (fv.offsetLeft < rl.scrollLeft + 40 || fv.offsetLeft + 210 > rl.scrollLeft + rl.clientWidth) rl.scrollTo({ left: Math.max(0, want), behavior: noMotion() ? "auto" : "smooth" }); }
+          var tapped = Date.now() - (st.tapPickAt || 0) < 500;
+          if (cfm) { this.cfTarget = k; if (first || noMotion()) { this.cfPos = k; this.cfV = 0; this.cfLayout(); } else if (!this.cfDragging) this.cfAnim(); }
+          var fv = q(ps, '.n-cv[data-pick="' + k + '"]'), rl = q(ps, ".n-rail");
+          if (tapped && !first && st.phys && !noMotion() && fv) {   /* Antippen federt, Nachbarn wellen mit (deckos-185) */
+            fv.animate([{ scale: "1" }, { scale: ".92", offset: .16 }, { scale: "1.06", offset: .48 }, { scale: ".99", offset: .76 }, { scale: "1" }], { duration: 640, easing: "ease-out" });
+            if (!cfm) { var cvs = rl.querySelectorAll(".n-cv"); for (var wi = Math.max(0, k - 6); wi <= Math.min(cvs.length - 1, k + 6); wi++) if (wi !== k) cvs[wi].animate([{ translate: "0 0" }, { translate: "0 -14px", offset: .3 }, { translate: "0 4px", offset: .65 }, { translate: "0 0" }], { duration: 560, delay: Math.abs(wi - k) * 45, easing: "ease-out" }); }
+          }
+          if (fv && rl && !cfm) { var want = fv.offsetLeft - 40 - Math.max(0, (rl.clientWidth - 260) * 0.15); if (fv.offsetLeft < rl.scrollLeft + 40 || fv.offsetLeft + 210 > rl.scrollLeft + rl.clientWidth) rl.scrollTo({ left: Math.max(0, want), behavior: noMotion() ? "auto" : "smooth" }); }
           var a = this.heros[this.flip ? 0 : 1], b2 = this.heros[this.flip ? 1 : 0]; this.flip = !this.flip;
-          var hu = g ? (g.hero || g.cover || "") : ""; a.style.backgroundImage = hu ? "url('" + hu + "')" : "linear-gradient(120deg," + gColor(g) + ",#111)"; a.style.backgroundPosition = g && g.hero ? "center" : "center 30%"; a.style.opacity = 1; b2.style.opacity = 0;
+          var hu = g ? ((cfm ? (g.cover || g.hero) : (g.hero || g.cover)) || "") : ""; a.style.backgroundImage = hu ? "url('" + hu + "')" : "linear-gradient(120deg," + gColor(g) + ",#111)"; a.style.backgroundPosition = g && g.hero ? "center" : "center 30%"; a.style.opacity = 1; b2.style.opacity = 0;
           var lg = q(ps, ".n-gLogo");
           var gp = this, paint = function () {
             var lh = NW ? 140 : 190; lg.style.height = lh + "px"; logoInto(lg, g, lh); lg.style.opacity = 1; lg.style.transform = "none";
@@ -4395,11 +4457,55 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
           blob(null, gColor(g));
         }
         var run = k === st.running && k >= 0;
+        setTxt(q(ps, ".n-gTitle"), g ? g.name : "");
         setTxt(q(ps, ".n-gl"), run ? "Läuft gerade" : k === 0 ? "Zuletzt gespielt" : "Bibliothek · " + (k + 1) + " / " + GAMES.length);
         setHtml(q(ps, ".n-gMeta"), g ? "<div>Zuletzt<b>" + esc(g.last || "–") + "</b></div><div>Gespielt<b>" + esc(fmtTime(g.min) || "–") + "</b></div><div>Letzte 2 Wochen<b>" + esc(fmtTime(g.min2w) || "0 Std.") + "</b></div>" : "");
         setTxt(q(ps, ".n-btnw span"), run ? "Zum Spiel" : "Spielen");
         var fb = q(ps, '[data-nxa="files"]'), ab = q(ps, '[data-nxa="achv"]'); fb.disabled = !(g && g.hasDir); ab.disabled = !(g && g.steam);
         this.updFriends(); this.updDl();
+      },
+      // ---- Coverflow-3D (deckos-185): Position als Kommazahl, Feder zum gewählten Spiel ----
+      cfLayout: function () {
+        var r = this.cfRail; if (!r || !r.isConnected) return; var p = this.cfPos, kids = r.children;
+        var half = (r.clientWidth || 1288) / 2 - 138, o1 = Math.min(215, half * 0.55), sp = Math.max(28, Math.min(96, (half - o1) / 3));   // schmale Bühne (16:9): enger stapeln
+        for (var i = 0; i < kids.length; i++) { var e = kids[i]; if (!e.classList.contains("n-cv")) continue;
+          var d = i - p, ad = Math.abs(d), c = d < -1 ? -1 : d > 1 ? 1 : d;
+          if (ad > 5.2) { if (e._cfv !== 0) { e._cfv = 0; e.style.visibility = "hidden"; } continue; }
+          if (e._cfv !== 1) { e._cfv = 1; e.style.visibility = ""; }
+          var x = (d < 0 ? -1 : 1) * (Math.min(ad, 1) * o1 + Math.max(0, ad - 1) * sp), z = -Math.min(ad, 1) * 220 - Math.max(0, ad - 1) * 30;
+          e.style.translate = x.toFixed(1) + "px 0 " + z.toFixed(1) + "px"; e.style.rotate = "y " + (-c * 62).toFixed(2) + "deg";
+          e.style.zIndex = 100 - Math.round(ad * 10); e.style.opacity = ad > 3.6 ? Math.max(0, 4.6 - ad).toFixed(2) : "";
+          e.style.filter = "brightness(" + (1 - 0.38 * Math.min(ad, 1)).toFixed(3) + ")";
+        }
+      },
+      cfAnim: function () {
+        var self = this; if (this.cfRaf) return; var last = performance.now();
+        if (noMotion()) { this.cfPos = this.cfTarget; this.cfV = 0; this.cfLayout(); return; }
+        var step = function (now) {
+          self.cfRaf = 0; if (!self.cfRail || !self.cfRail.isConnected || !st.cflow || self.cfDragging) return;
+          var dt = Math.min(0.05, (now - last) / 1000), tg = self.cfTarget; last = now;
+          if (st.phys) { self.cfV += (-170 * (self.cfPos - tg) - 21 * self.cfV) * dt; self.cfPos += self.cfV * dt; }   // Feder mit leichtem Nachschwingen
+          else { self.cfPos += (tg - self.cfPos) * (1 - Math.exp(-dt * 11)); self.cfV = 0; }   // ohne Physik: weich, ohne Überschwingen
+          if (Math.abs(self.cfPos - tg) < 0.002 && Math.abs(self.cfV) < 0.02) { self.cfPos = tg; self.cfV = 0; self.cfLayout(); return; }
+          self.cfLayout(); self.cfRaf = requestAnimationFrame(step);
+        };
+        this.cfRaf = requestAnimationFrame(step);
+      },
+      cfDrag: function (dx) {
+        if (!this.cfRail || !st.cflow || !GAMES.length) return;
+        if (!this.cfDragging) { this.cfDragging = true; this.cfPos0 = this.cfPos; cancelAnimationFrame(this.cfRaf); this.cfRaf = 0; }
+        var hi = GAMES.length - 1, raw = this.cfPos0 - dx / 150, rub = function (o) { return st.phys ? 0.55 * Math.tanh(o / 1.2) : 0; };   // Gummiband am Ende
+        this.cfPos = raw < 0 ? -rub(-raw) : raw > hi ? hi + rub(raw - hi) : raw; this.cfLayout();
+        var k = Math.max(0, Math.min(hi, Math.round(this.cfPos)));
+        if (k !== st.focus) { st.focus = k; this.cfTarget = k; render(); }
+      },
+      cfRelease: function (vx) {
+        if (!this.cfDragging) return; this.cfDragging = false; var hi = GAMES.length - 1, v = -(vx || 0) * 1000 / 150, tg;
+        if (st.phys) { v = Math.max(-40, Math.min(40, v)); tg = Math.round(this.cfPos + v * 0.28); this.cfV = v; }   // Schwung: weiterlaufen, dann einrasten
+        else { tg = Math.round(this.cfPos + (Math.abs(v) > 4 ? (v > 0 ? 0.5 : -0.5) : 0)); this.cfV = 0; }
+        tg = Math.max(0, Math.min(hi, tg)); this.cfTarget = tg;
+        if (tg !== st.focus) { st.focus = tg; render(); }
+        this.cfAnim();
       },
       updFriends: function () {
         var sd = this.sd, f = st.friends || { state: "load" }, list = q(sd, ".n-frl"), tg = q(sd, ".n-tgs");
@@ -4875,6 +4981,8 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
         dir = 0;
       },
       setDir: function (d) { dir = d; },
+      cfDrag: function (dx) { gaming.cfDrag(dx); },
+      cfRelease: function (vx) { gaming.cfRelease(vx); },
       update: function () { if (!root || upPending) return; upPending = true; requestAnimationFrame(function () { upPending = false; var p = pages[curName]; if (p && p.built && !sliderDown) p.update(); }); },
       hud: function () { pushHud(); if (curName === "hud" || curName === "sys") NX.update(); },
       launch: function (k) { return launchFx(k); },
