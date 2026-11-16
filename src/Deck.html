@@ -1490,6 +1490,34 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
 .lmcard .lmbc { left: 50% !important; right: auto !important; top: 50% !important; bottom: auto !important; transform: translate(-50%, 0); margin-top: -20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
 .lmcard .lmb > u { background: radial-gradient(ellipse 60% 70% at 50% 52%, rgba(6,7,10,.88) 0%, rgba(6,7,10,.78) 60%, rgba(6,7,10,.66) 100%), linear-gradient(0deg, rgba(6,7,10,.85) 0%, rgba(6,7,10,0) 35%) !important; }
 .lmcard .lmb > i { opacity: 1; }
+/* deckos-195 */
+.nxroot { transition: filter .35s ease, opacity .6s ease, transform .75s cubic-bezier(.65,0,.25,1); }
+body.ids-sink .nxroot { opacity: 0; transform: translateY(5vh) scale(.95); filter: blur(10px); }
+.idlescr .idsbg { inset: 0; background: radial-gradient(ellipse 52% 75% at 50% 42%, color-mix(in srgb, var(--glow) 30%, transparent) 0%, transparent 72%), #07070a; animation: idsBreath 14s ease-in-out infinite alternate; }
+@keyframes idsBreath { from { opacity: .82; transform: scale(1); } to { opacity: 1; transform: scale(1.06); } }
+.idlescr .idsshade { display: none; }
+.idlescr .idsmid { position: absolute; left: 0; right: 0; top: 18vh; text-align: center; }
+.idlescr .idsmid .idsclock { display: inline-block; font-size: 33vh; line-height: .9; font-weight: 300; letter-spacing: -1vh; font-variant-numeric: tabular-nums; transform-origin: 50% 50%; }
+.idlescr .idsinfo { margin-top: 4.5vh; font-size: 4.2vh; color: rgba(245,245,247,.74); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 8vh; }
+.idlescr .idsnow { position: absolute; left: 4.4vh; bottom: 4.4vh; display: flex; align-items: center; gap: 2vh; max-width: 70vh; padding: 1.4vh 3vh 1.4vh 1.4vh; border-radius: 2.6vh; background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.07); cursor: pointer; opacity: .85; }
+.idlescr .idsart { width: 7.6vh; height: 7.6vh; flex: none; border-radius: 1.4vh; background: rgba(255,255,255,.08) center/cover; }
+.idlescr .idsnt { min-width: 0; }
+.idlescr .idsnl { font-size: 1.9vh; font-weight: 700; letter-spacing: .3vh; text-transform: uppercase; color: var(--idslab, #7FB2FF); display: flex; align-items: center; gap: 1vh; }
+.idlescr .idsnl i { display: inline-flex; gap: .35vh; align-items: flex-end; height: 1.8vh; } .idlescr .idsnl i b { width: .45vh; background: currentColor; border-radius: .2vh; animation: idsEq 1s ease-in-out infinite alternate; }
+.idlescr .idsnl i b:nth-child(2) { animation-delay: -.35s; } .idlescr .idsnl i b:nth-child(3) { animation-delay: -.7s; } .idlescr .idsnow.paused .idsnl i b { animation: none; height: 30%; }
+@keyframes idsEq { from { height: 25%; } to { height: 100%; } }
+.idlescr .idsn1 { margin-top: .5vh; font-size: 3vh; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.idlescr .idsn2 { font-size: 2.4vh; color: #A3A3AD; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.idlescr.out { opacity: 1 !important; pointer-events: none !important; }
+.tw-now .n-in, .tw-now .n-in.n-on { transition: none !important; }
+.nxpage, .osdock { transition: filter .45s ease; }
+body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
+.lmsum { position: absolute; padding: 0; overflow: hidden; pointer-events: none; color: #fff; }
+.lmsum .lsc { position: absolute; inset: 0; display: flex; align-items: center; gap: 24px; padding: 0 30px 0 24px; }
+.lmsum .lsa { width: 72px; height: 72px; border-radius: 18px; background: center/cover; flex: none; }
+.lmsum .lsl { font-size: 14px; letter-spacing: .2em; font-weight: 700; text-transform: uppercase; color: var(--n-acc, #E6BF9B); }
+.lmsum .lsn { font-size: 26px; font-weight: 700; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lmsum .lsd { text-align: right; flex: none; } .lmsum .lsd b { font-size: 34px; font-weight: 700; } .lmsum .lsd span { display: block; font-size: 15px; color: var(--n-sub, rgba(255,255,255,.55)); margin-top: 4px; }
 .lmwave { position: fixed; z-index: 8999; pointer-events: none; border-radius: 50%; }
 </style>
 </head><body>
@@ -1621,7 +1649,7 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
   var st = { ui: "os", clockStyle: "digital", agendaMode: "stack", menuTab: "general", touchOnly: false, osPage: 2, hue: null, bright: null, dcUp: false, macroCustom: "", mode: "auto", form: "reel", style: "glas", dtheme: "dark", dcpos: "a", share: 0.6, accent: "#3B82F6", flash: "#7FB2FF",
     menu: false, dc: "off", prevDc: null, monPortrait: true, rtss: "off", focus: 0, running: -1, runGame: null, started: 0, launching: -1, vramTotal: 16, user: { name: "", avatar: "" }, zoom: 1, discordSplit: true, autostart: true, flashSel: "#7FB2FF",
     accentSel: "accent", sysAccent: "#3B82F6", bg: "deck", blur: "light", tint: "mid", tone: "system", sysLight: false, modHue: true, modMusic: true, modVoice: true, modMixer: true, modStats: true, fsVol: true, fsPad: true, fsBat: true, fsWa: true, fsCl: true, photoOn: true, fsAch: true, fsOk: true, fsFr: true, fsHeat: true, fsMus: true, fsDl: true, hudArt: true, media: null, mixer: [], voice: { mic: false, deaf: false }, ctx: null, sg: null, holdShelfUntil: 0 };
-  try { st.cflow = localStorage.getItem("gsCflow") !== "0"; st.phys = localStorage.getItem("gsPhys") !== "0"; st.dockMag = localStorage.getItem("gsDockMag") !== "0"; st.rollNum = localStorage.getItem("gsRoll") !== "0"; st.launchSt = localStorage.getItem("gsLaunchSt") || "wave"; if (!/^(stage|lid|tile|wave)$/.test(st.launchSt)) st.launchSt = "wave"; } catch (e) { st.cflow = true; st.phys = true; st.dockMag = true; st.rollNum = true; st.launchSt = "wave"; }
+  try { st.cflow = localStorage.getItem("gsCflow") !== "0"; st.phys = localStorage.getItem("gsPhys") !== "0"; st.dockMag = localStorage.getItem("gsDockMag") === "1";   /* Standard aus (deckos-195) */ st.rollNum = localStorage.getItem("gsRoll") !== "0"; st.launchSt = localStorage.getItem("gsLaunchSt") || "tile"; if (!/^(stage|lid|tile|wave)$/.test(st.launchSt)) st.launchSt = "tile"; st.tabSt = localStorage.getItem("gsTabSt") || "slide"; st.endAnim = localStorage.getItem("gsEndAnim") !== "0"; } catch (e) { st.cflow = true; st.phys = true; st.dockMag = false; st.rollNum = true; st.launchSt = "tile"; st.tabSt = "slide"; st.endAnim = true; }
   document.body.classList.toggle("rl-on", st.rollNum !== false);   // deckos-192   // deckos-185, gespeichert wie rvStage
   var hud = { fps: 0, low: null, ft: 0, gpu: 0, cpu: 0, gt: 0, ct: 0, vram: 0, pw: 0, hist: [] };
   for (var i0 = 0; i0 < 120; i0++) hud.hist.push(0);
@@ -1778,6 +1806,7 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
       ["bg", "Hintergrund", "", [["deck", "Deck"], ["clear", "Durchscheinend"]]],
       ["rvStage", "Lichtbühne", "", SW, "Farbiges Licht hinter den Flächen. Aus: Hintergrund wie bisher."],   /* deckos-182 */
       ["dockMag", "Dock-Vergrößerung", "", SW, "Das Symbol unter Finger oder Maus wächst wie beim Mac-Dock."],   /* deckos-191 */
+      ["tabSt", "Tab-Wechsel", "", [["slide", "Gleiten"], ["fade", "Überblenden"], ["stack", "Stapel"], ["zoom", "Zoom"]]],   /* deckos-195 */
       ["rollNum", "Rollende Zahlen", "", SW, "Die Uhr dreht sich beim Minutenwechsel wie ein Kilometerzähler weiter."],   /* deckos-192 */
       ["tint", "Glasdichte", "", [["xlow", "Hauch"], ["low", "Klar"], ["mid", "Mittel"], ["high", "Dicht"], ["xhigh", "Satt"]]],
       ["tone", "Glasfarbe", "", [["system", "Wie Windows"], ["dark", "Schwarz"], ["light", "Weiß"]]],
@@ -1798,6 +1827,7 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
       ["phys", "Echte Physik", "", SW, "Schwung mit Einrasten, Gummiband, federnde Cover und Lichtspur unter dem Finger."],
       ["#", "Spielstart"],
       ["launchSt", "Animation", "", [["wave", "Klassisch"], ["stage", "Vollbild"], ["lid", "Lidschlag"], ["tile", "Kachel"]]],   /* deckos-194 */
+      ["endAnim", "Spielende animieren", "", SW, "Beim Beenden kehrt die große Kachel als Cover ins Regal zurück, dazu kurz die Sitzungsdauer."],   /* deckos-195 */
       ["#", "Discord"],
       ["discordSplit", "Discord-Fenster andocken", "", SW],
       ["dcpos", "Seite", "D", [["a", "Oben"], ["b", "Unten"]]],
@@ -2251,21 +2281,40 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
   }
   function idsRender() {
     if (!idsEl) return;
-    var now = new Date(), o = idsInfo(), g = idsGlow();
+    var now = new Date(), g = idsGlow(), w = st.wx, c = w && w.current, ev = nextEvent(), m = st.media || {};
     idsEl.style.setProperty("--glow", g); idsEl.style.setProperty("--idslab", idsLab());
-    idsEl.innerHTML = '<div class="idsbg"></div><div class="idsshade"></div>' +
-      '<div class="idsleft"><div class="idsclock">' + String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") + '</div><div class="idsdate">' + esc(now.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })) + "</div></div>" +
-      '<div class="idsright">' + o.wx + (o.wx ? '<div class="idsrule"></div>' : "") + o.ev + (o.line ? '<div class="idsline">' + o.line + "</div>" : "") + "</div>";
+    var info = [now.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })];
+    if (c) info.push(Math.round(c.temperature_2m) + " °C " + (WX_TXT[c.weather_code] || ""));
+    info.push(ev ? idsWhen(ev) + " " + ev.title : "Keine Termine");
+    var np = m.title ? '<div class="idsnow' + (m.playing ? "" : " paused") + '" data-idsnow="1"><div class="idsart"' + (m.art ? " style=\"background-image:url('" + esc(m.art) + "')\"" : "") + '></div><div class="idsnt"><div class="idsnl">' + (m.playing ? "Jetzt läuft" : "Pausiert") + ' <i><b></b><b></b><b></b></i></div><div class="idsn1">' + esc(m.title) + '</div><div class="idsn2">' + esc(m.artist || m.app || "") + "</div></div></div>" : "";
+    idsEl.innerHTML = '<div class="idsbg"></div><div class="idsmid"><div class="idsclock">' + String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") + '</div><div class="idsinfo">' + esc(info.join(" · ")) + "</div></div>" + np;
   }
+  // deckos-195: Übergang – die kleine Uhr oben rechts wächst zur Idle-Uhr, das Deck sinkt weg; Aufwecken läuft rückwärts
+  function idsSrc() { var els = document.querySelectorAll("[data-clock] .tm"); for (var i = 0; i < els.length; i++) { var r = els[i].getBoundingClientRect(); if (r.width > 4 && r.height > 4) return r; } return null; }
+  function idsFlipTf(c, r) { var cr = c.getBoundingClientRect(); if (!r) return "scale(.6)"; var s = r.height / cr.height; return "translate(" + (r.left + r.width / 2 - (cr.left + cr.width / 2)) + "px," + (r.top + r.height / 2 - (cr.top + cr.height / 2)) + "px) scale(" + s + ")"; }
+  var idsOutT = 0;
   function idsShow(on) {
     if (!idsEl) { idsEl = document.createElement("div"); idsEl.className = "idlescr"; document.body.appendChild(idsEl); }
     clearInterval(idsT);
-    document.body.classList.toggle("ids-on", !!on);
-    if (on) { idsRender(); idsEl.classList.add("on"); idsT = setInterval(function () { var c = idsEl.querySelector(".idsclock"), d = new Date(), t = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); if (c && c.textContent !== t) idsRender(); }, 1000); }
+    var was = idsOn() && !idsEl.classList.contains("out"), src = idsSrc(), mo = !noMotion();
+    document.body.classList.toggle("ids-on", !!on); document.body.classList.toggle("ids-sink", !!on && mo);
+    if (on && !was) { clearTimeout(idsOutT); idsEl.classList.remove("out"); idsEl.getAnimations({ subtree: true }).forEach(function (x) { x.cancel(); }); }
+    if (on && !was && mo) { idsRender(); idsEl.style.transition = "none"; idsEl.classList.add("on"); idsEl.getBoundingClientRect(); idsEl.style.transition = "";
+      var ck = idsEl.querySelector(".idsclock"); if (ck) ck.animate([{ transform: idsFlipTf(ck, src), opacity: src ? 1 : 0 }, { transform: "none", opacity: 1 }], { duration: 1100, easing: "cubic-bezier(.65,0,.25,1)" });
+      var bg = idsEl.querySelector(".idsbg"); if (bg) bg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: "ease-out" });
+      [idsEl.querySelector(".idsinfo"), idsEl.querySelector(".idsnow")].forEach(function (x) { if (x) x.animate([{ opacity: 0, transform: "translateY(2vh)" }, { opacity: 1, transform: "none" }], { duration: 600, delay: 750, easing: "ease-out", fill: "backwards" }); });
+    }
+    if (on) { if (was || !mo) idsRender(); idsEl.classList.add("on"); idsT = setInterval(function () { var c = idsEl.querySelector(".idsclock"), d = new Date(), t = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); if (c && c.textContent !== t) idsRender(); }, 1000); }
+    else if (was && mo) {
+      var ck2 = idsEl.querySelector(".idsclock"); idsEl.classList.add("out");
+      if (ck2) ck2.animate([{ transform: "none" }, { transform: idsFlipTf(ck2, src) }], { duration: 750, easing: "cubic-bezier(.65,0,.25,1)", fill: "forwards" });
+      [idsEl.querySelector(".idsbg"), idsEl.querySelector(".idsinfo"), idsEl.querySelector(".idsnow")].forEach(function (x) { if (x) x.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 550, easing: "ease-in", fill: "forwards" }); });
+      clearTimeout(idsOutT); idsOutT = setTimeout(function () { if (!idsEl.classList.contains("out")) return; idsEl.style.transition = "none"; idsEl.classList.remove("on", "out"); idsEl.getAnimations({ subtree: true }).forEach(function (x) { x.cancel(); }); idsEl.getBoundingClientRect(); idsEl.style.transition = ""; }, 780);
+    }
     else idsEl.classList.remove("on");
     try { NX.wake(); } catch (x) {}
   }
-  document.addEventListener("pointerdown", function () { if (idsOn()) { idsShow(false); send({ type: "idlewake" }); wakeEat = true; setTimeout(function () { wakeEat = false; }, 700); } }, true);
+  document.addEventListener("pointerdown", function (e) { if (idsOn() && !idsEl.classList.contains("out")) { var tm = e.target && e.target.closest && e.target.closest("[data-idsnow]"); idsShow(false); send({ type: "idlewake" }); wakeEat = true; setTimeout(function () { wakeEat = false; }, 700); if (tm) setTimeout(function () { if (!osIs("media")) osGo(PI("media")); }, 120); } }, true);   // „Jetzt läuft“ antippen → Medien-Tab (deckos-195)
   // Game-safe Touch: Host merkt sich den Mauszeiger beim Tippen und setzt ihn danach zurück; Texteingabe hebt den Fokus-Schutz kurz auf
   document.addEventListener("pointerdown", function (e) { if (e.pointerType === "touch") send({ type: "tdown" }); }, true);
   document.addEventListener("pointerup", function (e) { if (e.pointerType === "touch") send({ type: "tup" }); }, true);
@@ -3600,6 +3649,8 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
     st[k] = v;
     if (k === "cflow" || k === "phys" || k === "dockMag" || k === "rollNum") { try { localStorage.setItem({ cflow: "gsCflow", phys: "gsPhys", dockMag: "gsDockMag", rollNum: "gsRoll" }[k], v ? "1" : "0"); } catch (e) {} }
     if (k === "launchSt") { try { localStorage.setItem("gsLaunchSt", String(v)); } catch (e) {} }   // deckos-194
+    if (k === "tabSt") { try { localStorage.setItem("gsTabSt", String(v)); } catch (e) {} }   // deckos-195
+    if (k === "endAnim") { try { localStorage.setItem("gsEndAnim", v ? "1" : "0"); } catch (e) {} }
     if (k === "rollNum") document.body.classList.toggle("rl-on", v !== false);
     if (k === "accentSel") { st.accent = effAccent(); bootAccent(st.accent); if (st.flashSel === "accent") st.flash = st.accent; }
     if ((k === "accentSel" || k === "flashSel" || k === "idleGlow") && st.picker === k) st.pk = hexToHsv(pkCur(k));
@@ -4157,7 +4208,7 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
       if (m.monitor != null) st.monitor = String(m.monitor); if (m.monActive != null) st.monActive = String(m.monActive); if (m.monitors) st.monitors = [].concat(m.monitors);
       render();
     } else if (m.type === "state") {
-      var before = effMode(), hadGame = !!st.runGame;
+      var before = effMode(), hadGame = !!st.runGame, prevRunK = st.running, prevSince = st.started;
       st.runGame = m.running ? { id: m.running, name: m.runningName } : null; document.body.classList.toggle("game-on", !!st.runGame);
       st.started = m.since || 0; syncRunning();
       if (st.couch) { render(); return; }
@@ -4169,7 +4220,7 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
           else showSplash(sk, fromShelf);
           return;
         }
-        if (hadGame && !st.runGame && st.osPage === PI("hud")) st.osPage = PI("shelf");
+        if (hadGame && !st.runGame) { if (NX.gameEnd(prevRunK, prevSince ? (Date.now() - prevSince) / 1000 : 0)) return; if (st.osPage === PI("hud")) st.osPage = PI("shelf"); }   // deckos-195
         render(); return;
       
       if (!hadGame && st.runGame && st.running >= 0 && before === "shelf" && st.launching < 0) {
@@ -4184,7 +4235,7 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
       if (before !== effMode() || hadGame !== !!st.runGame) render();
       send({ type: "view", hud: effMode() === "hud" });
     } else if (m.type === "hud") { applyHud(m); }
-    else if (m.type === "media") { var mk = JSON.stringify(st.media) !== JSON.stringify(m.media), newT = m.media && m.media.title && (!st.media || st.media.title !== m.media.title); st.media = m.media; if (mk && effMode() === "hud") updModules(); else if (mk && osIs("media")) osRerender(); if (mk && true) { if (newT && st.islandReady && fsOn("fsMus") && !osIs("media")) richShow({ kind: "mus", art: m.media.art || "", t: m.media.title, s: m.media.artist || "", app: m.media.app || "" }); if (newT && st.islandReady) islandEvent({ art: m.media.art || "", app: m.media.app || "", t: m.media.title, s: "Jetzt läuft" + (m.media.artist ? " · " + m.media.artist : "") }, 2800); else updMini(); } st.islandReady = true; }
+    else if (m.type === "media") { if (idsOn() && !idsEl.classList.contains("out")) setTimeout(idsRender, 0); var mk = JSON.stringify(st.media) !== JSON.stringify(m.media), newT = m.media && m.media.title && (!st.media || st.media.title !== m.media.title); st.media = m.media; if (mk && effMode() === "hud") updModules(); else if (mk && osIs("media")) osRerender(); if (mk && true) { if (newT && st.islandReady && fsOn("fsMus") && !osIs("media")) richShow({ kind: "mus", art: m.media.art || "", t: m.media.title, s: m.media.artist || "", app: m.media.app || "" }); if (newT && st.islandReady) islandEvent({ art: m.media.art || "", app: m.media.app || "", t: m.media.title, s: "Jetzt läuft" + (m.media.artist ? " · " + m.media.artist : "") }, 2800); else updMini(); } st.islandReady = true; }
     else if (m.type === "mixer") { var mk2 = JSON.stringify(st.mixer) !== JSON.stringify(m.sessions || []); st.mixer = m.sessions || []; if (effMode() === "hud") updModules(); else if (mk2 && osIs("media")) osRerender(); }
     else if (m.type === "hue") { if (st.hueHold && Date.now() < st.hueHold && m.status === "ok") return; st.hue = m; if (osIs("hue")) osRerender(); }
     else if (m.type === "cam") { onCam(m); }
@@ -5121,7 +5172,7 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
     }
     // ===== deckos-194: Spielstart-Animation (Einstellung launchSt: classic | stage | lid | tile | wave) =====
     var LM = null;
-    function lmMode() { var m = st.launchSt || "wave"; return /^(stage|lid|tile|wave)$/.test(m) ? m : "wave"; }   // „classic“ (alter Start) gibt es nicht mehr – Welle ist das neue Klassisch
+    function lmMode() { var m = st.launchSt || "tile"; return /^(stage|lid|tile|wave)$/.test(m) ? m : "tile"; }   // „classic“ (alter Start) gibt es nicht mehr – Welle ist das neue Klassisch
     function lmOn() { return !noMotion() && !st.couch; }
     function lmArea() { var r = root ? root.getBoundingClientRect() : null; return r && r.width > 50 ? r : { left: 0, top: 0, width: innerWidth, height: innerHeight }; }
     function lmBox(el, A) { el.style.left = A.left + "px"; el.style.top = A.top + "px"; el.style.width = A.width + "px"; el.style.height = A.height + "px"; return el; }
@@ -5255,6 +5306,63 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
       return { minT: 900, end: function () { if (pulse) pulse.cancel(); if (btn && btn.textContent === "Wird gestartet …") btn.textContent = t0; },
         finish: function (toHud, m) { wave("rgba(255,255,255,.35)", 0.7, 1200); dir = 1; lmGoHud(toHud); m.timers.push(setTimeout(function () { if (LM === m) lmEnd(false); }, 50)); } };
     }
+    // ===== deckos-195: Spielende – große Kachel dreht sich zurück zum Cover und fliegt ins Regal, dazu kurz die Sitzungskarte =====
+    function lmDur(sec) { var mi = Math.round(sec / 60); return mi < 60 ? mi + " Min." : Math.floor(mi / 60) + ":" + String(mi % 60).padStart(2, "0") + " Std."; }
+    function lmSummary(g, sec, d0) {   // Glas wie das Deck (.n-pan im Deck), kommt aus der Insel und zoomt exakt in sie zurück
+      if (!(sec >= 60) || !root) return; d0 = d0 == null ? 900 : d0;
+      var rr = root.getBoundingClientRect(), sc = rr.width / (root.offsetWidth || rr.width) || 1, isl = document.querySelector(".nxtop .island");
+      var w = Math.min(RW * 0.5, 720), h = 120, L = (RW - w) / 2, T = 72;
+      var el = E("div", "n-pan lmsum", '<div class="lsc"><div class="lsa"></div><div style="min-width:0;flex:1"><div class="lsl">Sitzung beendet</div><div class="lsn"></div></div><div class="lsd"><b></b><span></span></div></div>');
+      el.style.cssText += ";left:" + L + "px;top:" + T + "px;width:" + w + "px;height:" + h + "px;border-radius:40px;z-index:30;transform-origin:0 0";
+      q(el, ".lsa").style.backgroundImage = g.cover ? "url('" + g.cover + "')" : "linear-gradient(120deg," + g.c[0] + "," + g.c[1] + ")"; q(el, ".lsn").textContent = g.name; q(el, ".lsd b").textContent = lmDur(sec); q(el, ".lsd span").textContent = g.time ? "Gesamt " + g.time : "";
+      root.appendChild(el);
+      var blurT = setTimeout(function () { document.body.classList.add("sum-on"); }, d0);   // Deck dahinter leicht unscharf, solange die Karte steht
+      var tf = function () { isl = document.querySelector(".nxtop .island"); rr = root.getBoundingClientRect(); var ir = isl && isl.getClientRects().length ? isl.getBoundingClientRect() : null; if (!ir) return null; var ix = (ir.left - rr.left) / sc, iy = (ir.top - rr.top) / sc, iw = ir.width / sc, ih = ir.height / sc, sx = iw / w, sy = ih / h;
+        return { transform: "translate(" + (ix - L) + "px," + (iy - T) + "px) scale(" + sx + "," + sy + ")", borderRadius: (ih / 2 / sx) + "px / " + (ih / 2 / sy) + "px" }; };
+      var c = q(el, ".lsc"), t0 = tf();
+      if (t0) { var a0 = Object.assign({ opacity: 0 }, t0), a1 = Object.assign({ opacity: 1, offset: 0.2 }, t0); el.animate([a0, a1, { transform: "none", borderRadius: "40px", opacity: 1 }], { duration: 750, delay: d0, easing: "cubic-bezier(.3,1.2,.4,1)", fill: "backwards" }); }
+      else el.animate([{ opacity: 0, transform: "translateY(-30px)" }, { opacity: 1, transform: "none" }], { duration: 600, delay: d0, easing: "ease-out", fill: "backwards" });
+      c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 350, delay: d0 + 350, fill: "backwards" });
+      setTimeout(function () {
+        var t1 = tf(); c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: "forwards" }); clearTimeout(blurT); setTimeout(function () { document.body.classList.remove("sum-on"); }, 250);
+        if (t1) el.animate([{ transform: "none", borderRadius: "40px", opacity: 1 }, Object.assign({ opacity: 1, offset: 0.85 }, t1), Object.assign({ opacity: 0 }, t1)], { duration: 620, easing: "cubic-bezier(.6,0,.3,1)", fill: "forwards" }).onfinish = function () { el.remove(); };
+        else el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: "forwards" }).onfinish = function () { el.remove(); };
+      }, d0 + 4100);
+    }
+    function lmMeasure(el) {   // Endmaß ohne Einblend-Versatz (.n-in) der umgebenden Kachel
+      var p = el.closest(".n-in"), keep = p ? [p.style.transition, p.style.transform, p.style.filter] : null;
+      if (p) { p.style.transition = "none"; p.style.transform = "none"; p.style.filter = "none"; }
+      var r = el.getBoundingClientRect();
+      if (p) { p.style.transform = keep[1]; p.style.filter = keep[2]; p.getBoundingClientRect(); p.style.transition = keep[0]; }
+      return r;
+    }
+    function lmGameEnd(k, sec) {
+      var g = GAMES[k]; if (!g || st.endAnim === false || noMotion() || st.couch) return false;
+      var A = lmArea(), u = A.height / 720; lmEnd(true);
+      var hc = conts.hud, pcl = curName === "hud" && hc ? q(hc, ".n-pCl") : null, pr = pcl ? pcl.getBoundingClientRect() : null;
+      if (!pr || pr.width < 40) { lmSummary(g, sec, 300); return false; }
+      var img = g.hero || g.cover, R = Math.round(30 * u) + "px";
+      var card = E("div", "lmcard", '<div class="lmci"><div class="lmf"></div><div class="lmb"><i></i><u></u></div></div>');
+      q(card, ".lmf").style.backgroundImage = g.cover ? "url('" + g.cover + "')" : "linear-gradient(120deg," + g.c[0] + "," + g.c[1] + ")";
+      var bi = q(card, ".lmb > i"); bi.style.backgroundImage = img ? "url('" + img + "')" : "none"; if (!g.hero) { bi.style.filter = "blur(30px) saturate(1.3)"; bi.style.transform = "scale(1.2)"; bi.style.opacity = ".5"; }
+      [q(card, ".lmf"), q(card, ".lmb")].forEach(function (x) { x.style.borderRadius = R; });
+      q(card, ".lmci").style.transform = "rotateY(180deg)";
+      Object.assign(card.style, lmRect(pr)); document.body.appendChild(card); pcl.style.visibility = "hidden";
+      var small = [].filter.call(hc.querySelectorAll(".n-in"), function (e) { return e !== pcl; });
+      small.forEach(function (e, i) { e.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(" + Math.round(30 * u) + "px) scale(.95)" }], { duration: 380, delay: i * 50, easing: "ease-in", fill: "forwards" }); });
+      setTimeout(function () {
+        st.focus = k; st.osPage = PI("shelf"); render();
+        small.forEach(function (e) { e.getAnimations().forEach(function (x) { x.cancel(); }); }); pcl.style.visibility = "";
+        var tg = gaming.ps ? q(gaming.ps, '.n-cv[data-pick="' + k + '"]') : null, tr = tg ? lmMeasure(tg) : null;
+        if (!tr || tr.width < 20) tr = { left: A.left + A.width / 2 - 150 * u, top: A.top + A.height / 2 - 225 * u, width: 300 * u, height: 450 * u };
+        if (tg) tg.style.visibility = "hidden";
+        card.animate([lmRect(pr), lmRect(tr)], { duration: 1100, easing: "cubic-bezier(.6,0,.25,1)", fill: "forwards" });
+        [q(card, ".lmf"), q(card, ".lmb")].forEach(function (x) { x.animate([{ borderRadius: R }, { borderRadius: Math.round(16 * u) + "px" }], { duration: 1100, fill: "forwards" }); });
+        q(card, ".lmci").animate([{ transform: "rotateY(180deg)" }, { transform: "rotateY(0deg)" }], { duration: 1200, easing: SPR, fill: "forwards" });
+        setTimeout(function () { if (tg) tg.style.visibility = ""; card.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards" }).onfinish = function () { card.remove(); lmSummary(g, sec, 250); }; }, 1120);   // Sitzungskarte erst nach der Rückkehr
+      }, 420);
+      return true;
+    }
     function launchMoment(k, el, btn) {
       var g = GAMES[k]; if (!g || !lmOn()) return false;
       lmEnd(true);
@@ -5343,6 +5451,21 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
       var old = curName && conts[curName] && curName !== name ? conts[curName] : null;
       Object.keys(conts).forEach(function (n) { conts[n].classList.toggle("ospage", n === name); });
       var nc = conts[name];
+      var tws = booted && old && !noMotion() ? (st.tabSt || "slide") : "slide";   // deckos-195: Tab-Wechsel-Stil
+      if (old && tws !== "slide") {
+        var nO = curName, ofx = tws === "zoom" ? [{ opacity: 1, transform: "none", filter: "blur(0)" }, { opacity: 0, transform: "scale(1.06)", filter: "blur(6px)" }] : [{ opacity: 1 }, { opacity: 0 }];
+        if (tws === "stack") old.style.display = "none";   // Stapel: alte Seite sofort weg, nur der gewählte Tab ist zu sehen
+        else old.animate(ofx, { duration: tws === "fade" ? 240 : 260, easing: "ease-out", fill: "forwards" }).onfinish = function () { if (curName !== nO) old.style.display = "none"; old.getAnimations().forEach(function (x) { x.cancel(); }); };
+        var nc2 = conts[name]; nc2.style.display = ""; curName = name;
+        nc2.getAnimations().forEach(function (x) { x.cancel(); });
+        nc2.classList.add("tw-now"); nc2.querySelectorAll(".n-in").forEach(function (e) { e.classList.add("n-on"); }); nc2.getBoundingClientRect(); nc2.classList.remove("tw-now");
+        if (tws === "fade") nc2.animate([{ opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0)" }], { duration: 320, easing: "ease-out" });
+        else if (tws === "stack") nc2.animate([{ transform: "translateY(100%)" }, { transform: "translateY(0)" }], { duration: 620, easing: SPR });
+        else { var dn = document.querySelector('.osdock .osnav[data-os="' + PI(name) + '"]'), nr = nc2.getBoundingClientRect(), ox = "50%", oy = "100%"; if (dn && nr.width) { var dr = dn.getBoundingClientRect(); ox = ((dr.left + dr.width / 2 - nr.left) / nr.width * 100).toFixed(1) + "%"; oy = ((dr.top + dr.height / 2 - nr.top) / nr.height * 100).toFixed(1) + "%"; }
+          nc2.style.transformOrigin = ox + " " + oy; nc2.animate([{ transform: "scale(.06)", opacity: 0 }, { transform: "scale(.5)", opacity: 1, offset: 0.25 }, { transform: "scale(1)", opacity: 1 }], { duration: 560, easing: "cubic-bezier(.2,.8,.25,1)" }).onfinish = function () { nc2.style.transformOrigin = ""; }; }
+        var bb = B[name]; if (bb) blob(bb[0], bb[1]);
+        p.update(); loop(); return;
+      }
       if (old) {
         if (!noMotion()) { var a = old.animate([{ opacity: 1, transform: "none", filter: "blur(0)" }, { opacity: 0, transform: "translate3d(" + (-(dir || 1) * 140) + "px,0,0) scale(.965)", filter: "blur(8px)" }], { duration: 250, easing: "cubic-bezier(.45,0,.7,.4)" }); a.onfinish = function () { if (curName !== nOld) old.style.display = "none"; }; var nOld = curName; }
         else old.style.display = "none";
@@ -5389,6 +5512,7 @@ body.menu-on .nxtop .islwrap, body.menu-on .nxtop .islhit { opacity: 0; pointer-
       lmActive: function () { return !!LM; },
       lmRun: function (k, toHud) { return lmRun(k, toHud); },
       lmOn: function () { return lmOn(); },
+      gameEnd: function (k, sec) { return lmGameEnd(k, sec); },
       cur: function () { return curName; },
       wx7: function (o) { f7Open(o); }
     };
