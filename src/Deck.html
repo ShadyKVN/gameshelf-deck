@@ -1583,7 +1583,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
   var st = { ui: "os", clockStyle: "digital", agendaMode: "stack", menuTab: "general", touchOnly: false, osPage: 2, hue: null, bright: null, dcUp: false, macroCustom: "", mode: "auto", form: "reel", style: "glas", dtheme: "dark", dcpos: "a", share: 0.6, accent: "#3B82F6", flash: "#7FB2FF",
     menu: false, dc: "off", prevDc: null, monPortrait: true, rtss: "off", focus: 0, running: -1, runGame: null, started: 0, launching: -1, vramTotal: 16, user: { name: "", avatar: "" }, zoom: 1, discordSplit: true, autostart: true, flashSel: "#7FB2FF",
     accentSel: "accent", sysAccent: "#3B82F6", bg: "deck", blur: "light", tint: "mid", tone: "system", sysLight: false, modHue: true, modMusic: true, modVoice: true, modMixer: true, modStats: true, fsVol: true, fsPad: true, fsBat: true, fsWa: true, fsCl: true, photoOn: true, fsAch: true, fsOk: true, fsFr: true, fsHeat: true, fsMus: true, fsDl: true, hudArt: true, media: null, mixer: [], voice: { mic: false, deaf: false }, ctx: null, sg: null, holdShelfUntil: 0 };
-  try { st.cflow = localStorage.getItem("gsCflow") !== "0"; st.phys = localStorage.getItem("gsPhys") !== "0"; } catch (e) { st.cflow = true; st.phys = true; }   // deckos-185, gespeichert wie rvStage
+  try { st.cflow = localStorage.getItem("gsCflow") !== "0"; st.phys = localStorage.getItem("gsPhys") !== "0"; st.dockMag = localStorage.getItem("gsDockMag") !== "0"; } catch (e) { st.cflow = true; st.phys = true; st.dockMag = true; }   // deckos-185, gespeichert wie rvStage
   var hud = { fps: 0, low: null, ft: 0, gpu: 0, cpu: 0, gt: 0, ct: 0, vram: 0, pw: 0, hist: [] };
   for (var i0 = 0; i0 < 120; i0++) hud.hist.push(0);
 
@@ -1738,6 +1738,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
       ["#", "Hintergrund & Glas"],
       ["bg", "Hintergrund", "", [["deck", "Deck"], ["clear", "Durchscheinend"]]],
       ["rvStage", "Lichtbühne", "", SW, "Farbiges Licht hinter den Flächen. Aus: Hintergrund wie bisher."],   /* deckos-182 */
+      ["dockMag", "Dock-Vergrößerung", "", SW, "Das Symbol unter Finger oder Maus wächst wie beim Mac-Dock."],   /* deckos-191 */
       ["tint", "Glasdichte", "", [["xlow", "Hauch"], ["low", "Klar"], ["mid", "Mittel"], ["high", "Dicht"], ["xhigh", "Satt"]]],
       ["tone", "Glasfarbe", "", [["system", "Wie Windows"], ["dark", "Schwarz"], ["light", "Weiß"]]],
       ["#", "Farben"],
@@ -3524,7 +3525,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
     if (v === "true") v = true; else if (v === "false") v = false;
     if (k === "flashSel") st.flash = v === "accent" ? st.accent : v;
     st[k] = v;
-    if (k === "cflow" || k === "phys") { try { localStorage.setItem(k === "cflow" ? "gsCflow" : "gsPhys", v ? "1" : "0"); } catch (e) {} }
+    if (k === "cflow" || k === "phys" || k === "dockMag") { try { localStorage.setItem(k === "cflow" ? "gsCflow" : k === "phys" ? "gsPhys" : "gsDockMag", v ? "1" : "0"); } catch (e) {} }
     if (k === "accentSel") { st.accent = effAccent(); bootAccent(st.accent); if (st.flashSel === "accent") st.flash = st.accent; }
     if ((k === "accentSel" || k === "flashSel" || k === "idleGlow") && st.picker === k) st.pk = hexToHsv(pkCur(k));
     if (k === "idleGlow" && idsEl) idsEl.style.setProperty("--glow", idsGlow());
@@ -3869,7 +3870,7 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
   var dockMagEl = null;
   function dockMagAt(x, y, el) {
     var nb = null;
-    if (x != null && !noMotion()) { var h = el || document.elementFromPoint(x, y); nb = h && h.closest ? h.closest(".osdock .osnav:not(.on)") : null; }   // aktiver Tab wird nie vergrößert
+    if (x != null && !noMotion() && st.dockMag !== false) { var h = el || document.elementFromPoint(x, y); nb = h && h.closest ? h.closest(".osdock .osnav:not(.on)") : null; }   // aktiver Tab wird nie vergrößert
     if (nb === dockMagEl) return;
     if (!nb && x != null && h && h.closest && h.closest(".osdock .ospill") && !h.closest(".osnav")) return;   // Lücke zwischen zwei Symbolen: das aktuelle bleibt groß (kein Flackern)
     if (dockMagEl) dockMagEl.classList.remove("mag");
