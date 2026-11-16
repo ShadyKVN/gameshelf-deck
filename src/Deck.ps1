@@ -68,7 +68,7 @@ if (-not $own) {
     if (-not $own) { Log 'Alte Instanz reagiert nicht - Start abgebrochen.'; exit }
 }
 [void]$script:QuitEvent.Reset()
-$script:Version = 'deckos-185'
+$script:Version = 'deckos-186'
 Log '--- Start'
 Log "Version $($script:Version)"
 
@@ -158,6 +158,9 @@ public static class DeckCouch {
     [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr h);
     [DllImport("user32.dll")] static extern bool BringWindowToTop(IntPtr h);
     [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int c);
+    [DllImport("user32.dll")] static extern bool IsIconic(IntPtr h);
+    // minimiertes Fenster wiederherstellen (deckos-186, Medien-Cover holt die App nach vorn)
+    public static void Restore(IntPtr h) { if (h != IntPtr.Zero && IsIconic(h)) ShowWindow(h, 9); }
     [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
     [DllImport("user32.dll")] static extern bool AttachThreadInput(uint a, uint b, bool on);
     [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
@@ -371,7 +374,7 @@ public static class DeckIdle {
                 function Await($op, [type]$t) { $task = $asTask.MakeGenericMethod($t).Invoke($null, @($op)); if (-not $task.Wait(4000)) { throw 'Zeitueberschreitung' }; $task.Result }
                 $mgr = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
             } catch { $state.Err = "Start: $_"; return }
-            $lastKey = ''; $n = 0; $artTries = 0
+            $lastKey = ''; $n = 0; $artTries = 0; $artSig = ''; $artPh = $false
             while (-not $state.Stop) {
                 try {
                     $s = $mgr.GetCurrentSession()
@@ -394,14 +397,16 @@ public static class DeckIdle {
                         elseif ($app -match '^([A-Za-z]+)\.[A-Za-z0-9]{8,}') { $app = $Matches[1] }   # z. B. Vivaldi.SMY6OBBMK… -> Vivaldi
                         switch -regex ($app) { '^msedge$' { $app = 'Edge' } '^chrome$' { $app = 'Chrome' } '^firefox$' { $app = 'Firefox' } '^opera' { $app = 'Opera' } '^brave$' { $app = 'Brave' } }
                         if ($app.Length -gt 1 -and $app -cmatch '^[a-z]') { $app = $app.Substring(0, 1).ToUpper() + $app.Substring(1) }
-                        $state.Title = [string]$p.Title; $state.Artist = [string]$p.Artist; $state.App = $app
+                        $state.Title = [string]$p.Title; $state.Artist = [string]$p.Artist; $state.App = $app; $state.Aumid = [string]$s.SourceAppUserModelId
                         $state.Playing = ([string]$pb.PlaybackStatus -eq 'Playing')
                         $state.Album = [string]$p.AlbumTitle
                         try { $tl = $s.GetTimelineProperties(); $state.Pos = [double]$tl.Position.TotalSeconds; $state.Dur = [double]($tl.EndTime - $tl.StartTime).TotalSeconds; $state.PosAt = [double]$tl.LastUpdatedTime.ToUnixTimeMilliseconds() } catch { $state.Dur = 0 }
                         $key = "$($p.Title)|$($p.Artist)"
-                        if ($key -ne $lastKey) { $lastKey = $key; $state.Art = ''; $artTries = 0 }
-                        # Browser (YouTube u. a.) liefern das Vorschaubild oft erst nach dem Titel: bis ca. 10 s lang erneut versuchen
-                        if (-not $state.Art -and $artTries -lt 12) {
+                        if ($key -ne $lastKey) { $lastKey = $key; $state.Art = ''; $artTries = 0; $artSig = '' }
+                        # Browser (YouTube u. a.) liefern das Vorschaubild oft erst nach dem Titel: bis ca. 10 s lang erneut versuchen.
+                        # deckos-186: Apple Music schickt zuerst ein durchsichtiges Noten-Platzhalterbild und erst danach das Cover:
+                        # in den ersten ~15 s weiter nachsehen und ein geaendertes Bild uebernehmen; Platzhalter gelten nicht als Cover.
+                        if ($artTries -lt 16) {
                             $artTries++
                             if ($p.Thumbnail) {
                                 try {
@@ -424,14 +429,19 @@ public static class DeckIdle {
                                         try { $ns.Dispose() } catch { }
                                     } else { throw 'Datenstrom nicht lesbar' }
                                     $buf = $ms.ToArray(); $ms.Dispose()
+                                    $sig = "$($buf.Length)"; if ($buf.Length -gt 64) { $sig += '-' + [BitConverter]::ToString($buf, [int]($buf.Length / 2), 16) }
+                                    $isPh = $false
+                                    if ($buf.Length -gt 500 -and $buf[0] -eq 0x89) { try { Add-Type -AssemblyName System.Drawing; $bs = New-Object IO.MemoryStream (, $buf); $bm = New-Object Drawing.Bitmap $bs; $solid = 0; for ($yy = 1; $yy -lt 6; $yy++) { for ($xx = 1; $xx -lt 6; $xx++) { if ($bm.GetPixel([int]($bm.Width * $xx / 6), [int]($bm.Height * $yy / 6)).A -gt 160) { $solid++ } } }; $bm.Dispose(); $bs.Dispose(); $isPh = ($solid -lt 6) } catch { } }
+                                    if ($sig -eq $artSig) { $buf = New-Object byte[] 0 } elseif ($isPh -and $state.Art -and -not $artPh) { $buf = New-Object byte[] 0 } else { $artSig = $sig }
+                                    if ($buf.Length -gt 500 -and $isPh) { $artPh = $true; $state.Art = ''; $buf = New-Object byte[] 0 } elseif ($buf.Length -gt 500) { $artPh = $false }
                                     if ($buf.Length -gt 500) {
                                         $n++; $ext = $(if ($buf[0] -eq 0x89) { 'png' } else { 'jpg' }); $f = Join-Path $artDir ("media{0}.{1}" -f ($n % 4), $ext)
                                         [IO.File]::WriteAllBytes($f, $buf)
                                         $state.Art = [IO.Path]::GetFileName($f) + '?v=' + $n; $state.ArtErr = ''
-                                    } elseif ($artTries -ge 12) { $state.ArtErr = "Vorschaubild leer ($($buf.Length) Bytes, gemeldet $($rs.Size)) von $app" }
-                                    try { $rs.Dispose() } catch { try { [DeckErr]::L('Z273', $_) } catch {} }
+                                    } elseif ($artTries -ge 16 -and -not $state.Art) { $state.ArtErr = "Vorschaubild leer ($($buf.Length) Bytes, gemeldet $($rs.Size)) von $app" }
+                                    if ($rs -is [IDisposable]) { try { $rs.Dispose() } catch { } }   # manche Apps liefern ein reines COM-Objekt ohne Dispose (frueher Z273)
                                 } catch { $state.ArtErr = "Vorschaubild: $($_.Exception.Message)" }
-                            } elseif ($artTries -ge 12) { $state.ArtErr = "kein Vorschaubild von $app" }
+                            } elseif ($artTries -ge 16 -and -not $state.Art) { $state.ArtErr = "kein Vorschaubild von $app" }
                         }
                     } else { $state.Title = ''; $state.Artist = ''; $state.App = ''; $state.Playing = $false; $state.Art = ''; $state.Album = ''; $state.Dur = 0; $lastKey = '' }
                     $state.Err = ''
@@ -742,6 +752,26 @@ public static class DeckIconX2 {
         if (-not $Quiet) { Log ("Makro: $label nicht im Startmenue gefunden. Vorhanden: " + (($all | ForEach-Object { $_.Name }) -join ', ')) } else { Log "Makro: $label nicht im Startmenue, nehme Ersatz" }
         return $false
     }
+    # Medien-Tab: Tipp aufs Cover holt die spielende App nach vorn (deckos-186)
+    function Show-MediaApp {
+        $aum = [string]$script:Media.Aumid; $app = [string]$script:Media.App
+        if (-not $aum -and -not $app) { return }
+        $names = New-Object System.Collections.Generic.List[string]
+        if ($aum -match '([^\\!]+)\.exe$') { $names.Add($Matches[1]) }
+        if ($aum -match 'AppleMusic' -or $app -match 'Apple ?Music') { $names.Add('AppleMusic') }
+        if ($app) { $names.Add(($app -replace '\s', '')) }
+        if ($app -eq 'Edge') { $names.Add('msedge') }
+        $proc = $null
+        foreach ($n in $names) { $proc = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -like "$n*" -and $_.MainWindowHandle -ne [IntPtr]::Zero } | Select-Object -First 1; if ($proc) { break } }
+        if ($proc) {
+            try { [DeckCouch]::Restore($proc.MainWindowHandle); [void][DeckCouch]::Front($proc.MainWindowHandle); Log "Medien: $($proc.ProcessName) nach vorn"; return } catch { Log "Medien nach vorn: $_" }
+        }
+        try {
+            if ($aum -match '!') { Start-Process explorer.exe ('shell:AppsFolder\' + $aum); Log "Medien: $app ueber App-ID geoeffnet"; return }
+            $pp = Get-Process -ErrorAction SilentlyContinue | Where-Object { $names -contains $_.ProcessName -and $_.Path } | Select-Object -First 1
+            if ($pp) { Start-Process -FilePath $pp.Path; Log "Medien: $app neu aufgerufen" } else { Log "Medien: kein Fenster fuer $app gefunden" }
+        } catch { Log "Medien nach vorn: $_" }
+    }
     # Vivaldi mit fester Seite oeffnen (neuer Tab im laufenden Fenster)
     function Open-Vivaldi([string]$url) {
         $exe = $null
@@ -827,6 +857,7 @@ public static class DeckIconX2 {
                 'vclaude' { Open-Claude }
                 'vrhi' { [void](Open-StartApp '(^|\W)RHI(\W|$)' 'RHI') }
                 'vdlss' { [void](Open-StartApp '^DLSS ?Swapper' 'DLSS Swapper') }
+                'vapple' { [void](Open-StartApp '^Apple Music$' 'Apple Music') }
                 'vnord' {
                     if (-not (Open-StartApp '^NordVPN' 'NordVPN' -Quiet)) {
                         $nv = $null
@@ -1857,6 +1888,7 @@ public static class DeckIconX2 {
             }
             'coverReset' { Reset-Cover ([string]$m.id) }
             'media' { $script:MediaCmds.Enqueue([string]$m.cmd) }
+            'mediafront' { Show-MediaApp }
             'openuri' {
                 $u = [string]$m.uri
                 if ($u -match '^steam://(url/SteamIDPage/\d{17}|friends/message/\d{17}|store/\d+|openurl/https://steamcommunity\.com/my/stats/\d+/achievements)$' -or $u -match '^https://store\.steampowered\.com/app/\d+/?$') { Start-Process $u } else { Log "openuri abgelehnt: $u" }
