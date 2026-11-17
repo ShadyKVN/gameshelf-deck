@@ -68,7 +68,7 @@ if (-not $own) {
     if (-not $own) { Log 'Alte Instanz reagiert nicht - Start abgebrochen.'; exit }
 }
 [void]$script:QuitEvent.Reset()
-$script:Version = 'deckos-196'
+$script:Version = 'deckos-197'
 Log '--- Start'
 Log "Version $($script:Version)"
 
@@ -244,6 +244,7 @@ public static class DeckIdle {
     $script:Config = Read-Config $script:ConfigFile
     $script:SteamRoot = Get-SteamRoot
     $script:RunningPid = 0
+    $script:GameProc = $null; $script:GameProcDir = ''; $script:GameGoneAt = 0; $script:SteamGone = $null
 
     # ------------------------------------------------------------ Einstellungen
     # dcposP/shareP gelten hochkant (Discord oben/unten), dcposL/shareL quer (Discord links/rechts, z. B. Xeneon Edge).
@@ -2194,7 +2195,22 @@ public static class DeckIconX2 {
         $id = $null; $name = $null
         try {
             $rid = [Microsoft.Win32.Registry]::GetValue('HKEY_CURRENT_USER\Software\Valve\Steam', 'RunningAppID', 0)
-            if ($rid -and [int]$rid -gt 0) {
+            # deckos-197: Spielende sofort am Spielprozess erkennen - Steam raeumt nach dem Schliessen noch Sekunden auf (Cloud-Abgleich)
+            if ($script:SteamGone -and "steam_$rid" -ne $script:SteamGone) { $script:SteamGone = $null }
+            if ($script:GameProc -and $script:Running -eq "steam_$rid") {
+                $gone = $false; $okH = $true; try { $gone = $script:GameProc.HasExited } catch { $okH = $false; $script:GameProc = $null; $script:GameGoneAt = 0 }
+                if ($okH -and $gone) {
+                    $nowMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+                    if (-not $script:GameGoneAt) { $script:GameGoneAt = $nowMs } elseif ($nowMs - $script:GameGoneAt -ge 1500) {
+                        # 1,5 s Schonfrist: Launcher oder Neustart - laeuft wieder etwas aus dem Spielordner?
+                        $np = $null
+                        if ($script:GameProcDir) { foreach ($q in [Diagnostics.Process]::GetProcesses()) { try { $qp = [string]$q.Path; if ($qp -and $qp.StartsWith($script:GameProcDir, [StringComparison]::OrdinalIgnoreCase)) { $np = $q; break } } catch {} } }
+                        if ($np) { $script:GameProc = $np; $script:GameGoneAt = 0; Log ("Spielprozess gewechselt: " + $np.ProcessName) }
+                        else { $script:SteamGone = "steam_$rid"; $script:GameProc = $null; $script:GameGoneAt = 0; Log 'Spielprozess beendet (Steam raeumt noch auf)' }
+                    }
+                } else { $script:GameGoneAt = 0 }
+            }
+            if ($rid -and [int]$rid -gt 0 -and "steam_$rid" -ne $script:SteamGone) {
                 # nur Spiele aus der Bibliothek: Steam-Werkzeuge wie Wallpaper Engine (431960) zaehlen nicht
                 $g = $script:Games | Where-Object { $_.Id -eq "steam_$rid" } | Select-Object -First 1
                 if ($g) { $id = $g.Id; $name = $g.Name }
@@ -2252,6 +2268,14 @@ public static class DeckIconX2 {
         }
         $script:RunningPid = 0
         if ($id) { $f2 = 0.0; $rp = [DeckNative]::RtssTop([ref]$f2); if ($rp -gt 0 -and $f2 -gt 5) { $script:RunningPid = $rp } }
+        # deckos-197: Prozess des laufenden Steam-Spiels merken (nur wenn er im Spielordner liegt); die Handle-Pruefung oben kostet praktisch nichts
+        if ($id -notlike 'steam_*') { $script:GameProc = $null; $script:GameGoneAt = 0 } elseif ($script:RunningPid -gt 0 -and -not $script:GameGoneAt -and (-not $script:GameProc -or $script:GameProc.Id -ne $script:RunningPid)) {
+            try {
+                $gg = $script:Games | Where-Object { $_.Id -eq $id } | Select-Object -First 1
+                $gp = [Diagnostics.Process]::GetProcessById($script:RunningPid); $gpp = [string]$gp.Path
+                if ($gg -and $gg.InstallDir -and $gpp) { $gd = $gg.InstallDir.TrimEnd('\') + '\'; if ($gpp.StartsWith($gd, [StringComparison]::OrdinalIgnoreCase)) { [void]$gp.HasExited; $script:GameProc = $gp; $script:GameProcDir = $gd } }
+            } catch { try { [DeckErr]::L('Z1540', $_) } catch {} }
+        }
         Send-State
     }
     function Send-State {
