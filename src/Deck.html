@@ -1518,6 +1518,10 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
 .lmsum .lsl { font-size: 14px; letter-spacing: .2em; font-weight: 700; text-transform: uppercase; color: var(--n-acc, #E6BF9B); }
 .lmsum .lsn { font-size: 26px; font-weight: 700; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lmsum .lsd { text-align: right; flex: none; } .lmsum .lsd b { font-size: 34px; font-weight: 700; } .lmsum .lsd span { display: block; font-size: 15px; color: var(--n-sub, rgba(255,255,255,.55)); margin-top: 4px; }
+.n-rain { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%); }   /* deckos-198: weiche Kanten */
+.n-cf .n-rail { left: 580px; }
+.n-cf .n-cv, .nxroot .n-cf .n-cv.n-f { width: 300px; height: 450px; }
+.n-cf .n-cv { margin: -252px 0 0 -150px; border-radius: 22px; }   /* deckos-198: Coverflow größer (vorher 236 × 354) */
 .lmwave { position: fixed; z-index: 8999; pointer-events: none; border-radius: 50%; }
 </style>
 </head><body>
@@ -4340,6 +4344,7 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
         var mm = dk === tk ? m : 1440, p = h.precipitation_probability ? h.precipitation_probability[i] || 0 : 0;
         if (p >= 50 && mm < 1440) { if (!run) { run = [mm, mm + 60, p]; r.rain.push(run); } else { run[1] = mm + 60; run[2] = Math.max(run[2], p); } } else run = null;
       });
+      for (var rg = r.rain.length - 1; rg > 0; rg--) { var ra = r.rain[rg - 1], rb = r.rain[rg]; if (rb[0] - ra[1] <= 60) { ra[1] = rb[1]; ra[2] = Math.max(ra[2], rb[2]); r.rain.splice(rg, 1); } }   // deckos-198: trockene Einzelstunde zwischen zwei Regenzonen zählt mit
       var nm = minOfDay(Date.now());
       r.rain.forEach(function (z) { r.rainMax = Math.max(r.rainMax, z[2]); if (nm >= z[0] && nm < z[1]) r.rainNow = true; if (r.rainFrom == null && z[1] > nm) r.rainFrom = z[0]; });
       r.cur = wx.current || null;
@@ -4757,7 +4762,7 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
       cfWrap: function () { return GAMES.length >= 4; },
       cfLayout: function () {
         var r = this.cfRail; if (!r || !r.isConnected) return; var p = this.cfPos, kids = r.children, wrap = this.cfWrap(), NN = GAMES.length;
-        var half = (r.clientWidth || 1288) / 2 - 138, o1 = Math.min(215, half * 0.55), sp = Math.max(28, Math.min(96, (half - o1) / 3));   // schmale Bühne (16:9): enger stapeln
+        var half = (r.clientWidth || 1288) / 2 - 120, o1 = Math.min(272, half * 0.58), sp = Math.max(30, Math.min(124, (half - o1) / 2.6));   // deckos-198: größer   // schmale Bühne (16:9): enger stapeln
         for (var i = 0; i < kids.length; i++) { var e = kids[i]; if (!e.classList.contains("n-cv")) continue;
           var d = i - p; if (wrap) { d = ((d % NN) + NN) % NN; if (d > NN / 2) d -= NN; }
           var ad = Math.abs(d), c = d < -1 ? -1 : d > 1 ? 1 : d;
