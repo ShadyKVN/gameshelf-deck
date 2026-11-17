@@ -2195,7 +2195,7 @@ public static class DeckIconX2 {
         $id = $null; $name = $null
         try {
             $rid = [Microsoft.Win32.Registry]::GetValue('HKEY_CURRENT_USER\Software\Valve\Steam', 'RunningAppID', 0)
-            # deckos-198: Spielende sofort am Spielprozess erkennen - Steam raeumt nach dem Schliessen noch Sekunden auf (Cloud-Abgleich)
+            # deckos-197: Spielende sofort am Spielprozess erkennen - Steam raeumt nach dem Schliessen noch Sekunden auf (Cloud-Abgleich)
             if ($script:SteamGone -and "steam_$rid" -ne $script:SteamGone) { $script:SteamGone = $null }
             if ($script:GameProc -and $script:Running -eq "steam_$rid") {
                 $gone = $false; $okH = $true; try { $gone = $script:GameProc.HasExited } catch { $okH = $false; $script:GameProc = $null; $script:GameGoneAt = 0 }
@@ -2268,7 +2268,7 @@ public static class DeckIconX2 {
         }
         $script:RunningPid = 0
         if ($id) { $f2 = 0.0; $rp = [DeckNative]::RtssTop([ref]$f2); if ($rp -gt 0 -and $f2 -gt 5) { $script:RunningPid = $rp } }
-        # deckos-198: Prozess des laufenden Steam-Spiels merken (nur wenn er im Spielordner liegt); die Handle-Pruefung oben kostet praktisch nichts
+        # deckos-197: Prozess des laufenden Steam-Spiels merken (nur wenn er im Spielordner liegt); die Handle-Pruefung oben kostet praktisch nichts
         if ($id -notlike 'steam_*') { $script:GameProc = $null; $script:GameGoneAt = 0 } elseif ($script:RunningPid -gt 0 -and -not $script:GameGoneAt -and (-not $script:GameProc -or $script:GameProc.Id -ne $script:RunningPid)) {
             try {
                 $gg = $script:Games | Where-Object { $_.Id -eq $id } | Select-Object -First 1
