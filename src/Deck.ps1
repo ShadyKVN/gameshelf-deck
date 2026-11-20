@@ -68,7 +68,7 @@ if (-not $own) {
     if (-not $own) { Log 'Alte Instanz reagiert nicht - Start abgebrochen.'; exit }
 }
 [void]$script:QuitEvent.Reset()
-$script:Version = 'deckos-203'
+$script:Version = 'deckos-204'
 Log '--- Start'
 Log "Version $($script:Version)"
 
@@ -652,7 +652,6 @@ public static class DeckIconX2 {
                     rhi = (& $byName '(^|\W)RHI(\W|$)')
                     dlss = (& $byName '^DLSS ?Swapper')
                     nordvpn = $(if (& $byName '^NordVPN') { & $byName '^NordVPN' } else { & $byPath @((Join-Path $env:ProgramFiles 'NordVPN\NordVPN.exe')) })
-                    aniworld = $(if (& $byName 'ani ?world') { & $byName 'ani ?world' } else { & $byPath @((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Aniworld.lnk'), (Join-Path $env:USERPROFILE 'Desktop\Aniworld.lnk')) })
                     explorer = (& $byPath @((Join-Path $env:WINDIR 'explorer.exe')))
                 }
                 foreach ($k in $srcs.Keys) {
@@ -868,12 +867,6 @@ public static class DeckIconX2 {
                         foreach ($c in @((Join-Path $env:ProgramFiles 'NordVPN\NordVPN.exe'), (Join-Path ${env:ProgramFiles(x86)} 'NordVPN\NordVPN.exe'))) { if ($c -and (Test-Path $c)) { $nv = $c; break } }
                         if ($nv) { Start-Process -FilePath $nv } else { Log 'Makro: NordVPN nicht gefunden' }
                     }
-                }
-                'vani' {
-                    # Verknuepfung auf dem Desktop (Vivaldi-Web-App) hat Vorrang
-                    $lnk = $null; foreach ($c in @((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Aniworld.lnk'), (Join-Path $env:USERPROFILE 'Desktop\Aniworld.lnk'))) { if ($c -and (Test-Path -LiteralPath $c)) { $lnk = $c; break } }
-                    if ($lnk) { Start-Process -FilePath $lnk; Log "Makro: AniWorld -> $lnk" }
-                    elseif (-not (Open-StartApp 'ani ?world' 'AniWorld' -Quiet)) { Open-Vivaldi 'https://aniworld.to/' }
                 }
                 'custom' { if ([string]$script:Settings.macroCustom) { Send-KeySpec ([string]$script:Settings.macroCustom) } else { Log 'Makro: macroCustom in deck.json ist leer' } }
             }
@@ -1558,10 +1551,9 @@ public static class DeckIconX2 {
         } catch { Log "Start fehlgeschlagen ($($g.Name)): $_" }
     }
 
-    # ------------------------------------------------------------ Kino (deckos-201): Streaming-Player als eigenes WebView2-Fenster links auf dem Deck, 16:9
-    # Eigener Profilordner (Anmeldungen bleiben dort, getrennt vom Deck), eigener Browserprozess; existiert nur, solange das Kino offen ist.
-    # Das Deck zeigt rechts daneben die Steuerung. Abfrage des Videos per Skript in Hauptseite + Frames (AniWorld-Hoster laufen im iframe).
-    $script:Kino = @{ Pid = 0; Placed = $true; PlaceAt = $null; PlaceStep = 0; PlaceT = $null; ResN = -1; Logo = ''; Name = ''; Color = ''; Icon = ''; Go = $null; Win = $null; Wv = $null; Hwnd = [IntPtr]::Zero; Vis = $false; Url = ''; Resume = 0.0; Resumed = $false; Frames = (New-Object System.Collections.ArrayList); Tasks = @(); VidF = $null; Timer = $null; Last = '' }
+    # ------------------------------------------------------------ Kino: Streaming-Player als Edge-Vollbild (eigenes Profil), das Deck zeigt nur die Steuerung
+    # Abfrage des Videos per Skript in Hauptseite + Frames. Edge laeuft nur, solange das Kino offen ist.
+    $script:Kino = @{ Pid = 0; Placed = $true; PlaceAt = $null; PlaceStep = 0; PlaceT = $null; ResN = -1; Logo = ''; Name = ''; Color = ''; Icon = ''; Vis = $false; Url = ''; Resume = 0.0; Resumed = $false; Timer = $null; Last = ''; Closing = $null; Pending = $null; StartAt = $null }
     $script:KinoJs = @'
 (() => {
   if (!window.__kino) {
@@ -1578,7 +1570,6 @@ public static class DeckIconX2 {
       if (/netflix\./.test(h)) { w = /^\/watch\//.test(p); const b = document.querySelector('[data-uia="video-title"]'); if (b) { const h4 = b.querySelector('h4'); s = h4 ? h4.textContent.trim() : ''; e = Array.from(b.querySelectorAll('span')).map(x => x.textContent.trim()).filter(Boolean).join(' · '); if (!s) { s = b.textContent.trim(); e = ''; } } }
       else if (/primevideo\.|amazon\./.test(h)) { const t = tx('.atvwebplayersdk-title-text'); w = !!t; s = t; e = tx('.atvwebplayersdk-subtitle-text'); }
       else if (/crunchyroll\./.test(h)) { w = /\/watch\//.test(p); s = tx('.show-title-link h4, a.show-title-link, [data-t="show-title-link"]'); e = tx('h1.title, .erc-current-media-info h1'); }
-      else if (/aniworld\./.test(h)) { w = /\/episode-\d+/.test(p) || /\/film-\d+/.test(p); s = tx('.series-title h1 span') || tx('.series-title h1'); const m = /staffel-(\d+)\/episode-(\d+)/.exec(p), f = /film-(\d+)/.exec(p); const et = tx('.hosterSiteTitle h2 .episodeGermanTitle') || tx('.episodeGermanTitle'); e = (m ? 'Staffel ' + m[1] + ' · Folge ' + m[2] : f ? 'Film ' + f[1] : '') + (et ? ' · ' + et : ''); }
       if (s) T.s = s; if (e) T.e = e;
       return { watch: w, series: T.s, ep: T.e };
     };
@@ -1611,15 +1602,16 @@ public static class DeckIconX2 {
     # Kino (deckos-203): Player als Edge-Fenster (eigenes Profil, Vollbild) – so greifen NVIDIA RTX Video (Super Resolution/HDR) und Netflix 4K/HDR.
     # Das Deck steuert Edge ueber die Fernsteuer-Schnittstelle (DevTools-Protokoll, nur 127.0.0.1) aus einem Hintergrund-Thread.
     $script:KC = $null
-    function Start-KinoCdp {
-        $K = [hashtable]::Synchronized(@{ Stop = $false; Port = 9333; Js = $script:KinoJs; Cmds = (New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'); Res = $null; ResN = 0; Alive = $false; Seen = $false; Miss = 0; VidSess = $null; Log = (New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]') })
+    function Start-KinoCdp([string]$prof) {
+        $K = [hashtable]::Synchronized(@{ Stop = $false; Port = 0; Prof = $prof; Js = $script:KinoJs; Cmds = (New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'); Res = $null; ResN = 0; Alive = $false; Seen = $false; Miss = 0; VidSess = $null; Log = (New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]') })
         $ps = [PowerShell]::Create()
         [void]$ps.AddScript({
             param($K)
             $ws = $null; $script:cid = 0; $sess = @{}
+            function Tok { return (New-Object Threading.CancellationTokenSource 4000).Token }   # jede Operation max. 4 s, sonst Abbruch + Neuverbindung
             function Recv {
                 $buf = New-Object byte[] 262144; $ms = New-Object IO.MemoryStream
-                do { $r = $ws.ReceiveAsync((New-Object 'ArraySegment[byte]' (, $buf)), [Threading.CancellationToken]::None).GetAwaiter().GetResult(); if ($r.MessageType -eq [Net.WebSockets.WebSocketMessageType]::Close) { throw 'closed' }; $ms.Write($buf, 0, $r.Count) } while (-not $r.EndOfMessage)
+                do { $r = $ws.ReceiveAsync((New-Object 'ArraySegment[byte]' (, $buf)), (Tok)).GetAwaiter().GetResult(); if ($r.MessageType -eq [Net.WebSockets.WebSocketMessageType]::Close) { throw 'closed' }; $ms.Write($buf, 0, $r.Count) } while (-not $r.EndOfMessage)
                 return ([Text.Encoding]::UTF8.GetString($ms.ToArray()) | ConvertFrom-Json)
             }
             function Ev($m) {
@@ -1630,18 +1622,22 @@ public static class DeckIconX2 {
                 $script:cid++; $id = $script:cid
                 $o = [ordered]@{ id = $id; method = $method; params = $params }; if ($sid) { $o.sessionId = $sid }
                 $b = [Text.Encoding]::UTF8.GetBytes(($o | ConvertTo-Json -Depth 6 -Compress))
-                [void]$ws.SendAsync((New-Object 'ArraySegment[byte]' (, $b)), [Net.WebSockets.WebSocketMessageType]::Text, $true, [Threading.CancellationToken]::None).GetAwaiter().GetResult()
+                [void]$ws.SendAsync((New-Object 'ArraySegment[byte]' (, $b)), [Net.WebSockets.WebSocketMessageType]::Text, $true, (Tok)).GetAwaiter().GetResult()
                 for ($n = 0; $n -lt 400; $n++) { $m = Recv; if ($m.id -eq $id) { return $m }; Ev $m }
                 return $null
             }
             while (-not $K.Stop) {
                 try {
                     if (-not $ws -or $ws.State -ne [Net.WebSockets.WebSocketState]::Open) {
-                        $wc = New-Object Net.WebClient; $j = $wc.DownloadString("http://127.0.0.1:$($K.Port)/json") | ConvertFrom-Json
-                        $pg = @($j | Where-Object { $_.type -eq 'page' -and $_.webSocketDebuggerUrl })[0]
+                        # Audit: kein fester Port mehr – Edge waehlt selbst einen freien und schreibt ihn ins Profil (gilt auch, wenn ein altes Kino-Edge noch laeuft)
+                        try { $pl = @(Get-Content -LiteralPath (Join-Path $K.Prof 'DevToolsActivePort') -ErrorAction Stop)[0]; if ($pl -match '^\d{2,5}$') { $K.Port = [int]$pl } } catch { }
+                        if (-not $K.Port) { throw 'kein Port' }
+                        $rq = [Net.WebRequest]::Create("http://127.0.0.1:$($K.Port)/json"); $rq.Timeout = 2000; $rq.ReadWriteTimeout = 2000
+                        $rs = $rq.GetResponse(); try { $j = (New-Object IO.StreamReader $rs.GetResponseStream()).ReadToEnd() | ConvertFrom-Json } finally { $rs.Close() }
+                        $pg = @($j | Where-Object { $_.type -eq 'page' -and $_.webSocketDebuggerUrl -and $_.url -notlike 'devtools:*' })[0]
                         if (-not $pg) { throw 'keine Seite' }
                         $ws = New-Object Net.WebSockets.ClientWebSocket
-                        $ws.ConnectAsync([Uri]$pg.webSocketDebuggerUrl, [Threading.CancellationToken]::None).GetAwaiter().GetResult()
+                        $ws.ConnectAsync([Uri]$pg.webSocketDebuggerUrl, (Tok)).GetAwaiter().GetResult()
                         $sess = @{}; $K.Seen = $true; $K.Alive = $true; $K.Miss = 0
                         [void](Rq 'Target.setAutoAttach' @{ autoAttach = $true; waitForDebuggerOnStart = $false; flatten = $true } $null)
                         $K.Log.Enqueue("Kino: Edge verbunden ($($pg.url))")
@@ -1661,7 +1657,7 @@ public static class DeckIconX2 {
                     }
                     $K.Res = $res.ToArray(); $K.ResN++
                 } catch {
-                    try { if ($ws) { $ws.Dispose() } } catch { }; $ws = $null
+                    try { if ($ws) { $ws.Abort(); $ws.Dispose() } } catch { }; $ws = $null
                     if ($K.Seen) { $K.Miss++; if ($K.Miss -gt 6) { $K.Alive = $false } }
                     if ("$_" -eq 'geschlossen') { $K.Alive = $false }
                 }
@@ -1680,6 +1676,7 @@ public static class DeckIconX2 {
         $k = $script:Kino; $K = $script:KC; if (-not $K) { return }
         $l = $null; while ($K.Log.TryDequeue([ref]$l)) { Log $l }
         if ($K.Seen -and -not $K.Alive) { Log 'Kino: Edge-Fenster wurde geschlossen'; Close-Kino $true; return }
+        if (-not $K.Seen -and $k.StartAt -and ((Get-Date) - $k.StartAt).TotalSeconds -gt 25) { Log 'Kino: keine Verbindung zu Edge – abgebrochen'; Close-Kino $true; Send ([ordered]@{ type = 'kino'; vis = $false; open = $false; err = 'Edge antwortet nicht.' }); return }
         if ($K.Alive -and -not $k.Placed) { try { Fix-KinoPlace } catch { Log "Kino-Platzierung: $_" } }
         if ($K.ResN -eq $k.ResN) { return }; $k.ResN = $K.ResN
         $top = $null; $vid = $null; $vs = $null; $area = -1
@@ -1745,12 +1742,12 @@ a($("#ln"),[{transform:"scaleX(1)",opacity:0},{transform:"scaleX(1)",opacity:0,o
     function Get-KinoHtml([bool]$out) {
         $k = $script:Kino
         $c = if ($k.Color -match '^#[0-9a-fA-F]{6}$') { $k.Color } else { '#4C8DFF' }
-        $i = if ($k.Icon -match '^https://[^\s"<>]+$') { $k.Icon } else { '' }
+        $i = 
         $n = [System.Net.WebUtility]::HtmlEncode([string]$k.Name)
         $t = if ($out) { 'Bis bald' } else { 'Wird gestartet' }
         $l = [System.Net.WebUtility]::HtmlEncode(([string]$k.Name).Substring(0, [math]::Min(1, ([string]$k.Name).Length)))
         $lg = "<b>$l</b>"; $lgc = ''
-        if ($k.Logo -match '^https://[^\s"<>]+$') { $lg = '<img src="' + $k.Logo + '" alt="" onerror="this.parentNode.className=&#39;&#39;;this.outerHTML=&#39;<b>' + $l + '</b>&#39;">'; $lgc = ' class="im"' }
+        if ($k.Logo -match '^data:image/(png|svg\+xml);base64,[A-Za-z0-9+/=]+$' -or $k.Logo -match '^https://[^\s"<>]+$') { $lg = '<img src="' + $k.Logo + '" alt="" onerror="this.parentNode.className=&#39;&#39;;this.outerHTML=&#39;<b>' + $l + '</b>&#39;">'; $lgc = ' class="im"' }
         return $script:KinoIntro.Replace('{{LGC}}', $lgc).Replace('{{LG}}', $lg).Replace('{{L}}', $l).Replace('{{C}}', $c).Replace('{{I}}', $i).Replace('{{N}}', $n).Replace('{{T}}', $t).Replace('{{OUT}}', $(if ($out) { 'true' } else { 'false' }))
     }
     function Get-KinoMon {
@@ -1770,10 +1767,10 @@ a($("#ln"),[{transform:"scaleX(1)",opacity:0},{transform:"scaleX(1)",opacity:0,o
     }
     function Get-KinoDataUrl([bool]$out) {
         $h = Get-KinoHtml $out
+        if ($h.Length -gt 21000) { $lg = $script:Kino.Logo; $script:Kino.Logo = ''; $h = Get-KinoHtml $out; $script:Kino.Logo = $lg; Log 'Kino: Logo zu gross fuer den Start – Buchstabe statt Logo' }
         if (-not $out) { $h = $h.Replace('</body>', '<script>setTimeout(function(){location.replace(' + ($script:Kino.Url | ConvertTo-Json) + ')},2950)</script></body>') }
         return 'data:text/html;charset=utf-8;base64,' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($h))
     }
-    function Place-Kino { }
     # Liegt das Edge-Fenster nicht auf dem gewaehlten Bildschirm (z. B. bei gemischter Windows-Skalierung), wird es in echten Bildpunkten verschoben und erst dort Vollbild
     function Find-KinoHwnd {
         $k = $script:Kino
@@ -1787,7 +1784,7 @@ a($("#ln"),[{transform:"scaleX(1)",opacity:0},{transform:"scaleX(1)",opacity:0,o
         if (($now - $k.PlaceAt).TotalSeconds -gt 20) { $k.Placed = $true; Log 'Kino: Platzierung aufgegeben'; return }
         $h = Find-KinoHwnd; if ($h -eq [IntPtr]::Zero) { return }
         $m = Get-KinoMon; if (-not $m) { $k.Placed = $true; return }
-        Add-Type -AssemblyName System.Windows.Forms
+        if (-not ('System.Windows.Forms.Screen' -as [type])) { Add-Type -AssemblyName System.Windows.Forms }
         $on = [System.Windows.Forms.Screen]::FromHandle($h).DeviceName
         if ($k.PlaceStep -eq 0) {
             if ($on -eq $m.Device) { $k.Placed = $true; Log "Kino: Edge liegt auf $on"; return }
@@ -1805,23 +1802,34 @@ a($("#ln"),[{transform:"scaleX(1)",opacity:0},{transform:"scaleX(1)",opacity:0,o
         }
     }
     function Front-Kino { if ($script:KC) { $script:KC.Cmds.Enqueue('FRONT') } }
-    function Show-Kino { Front-Kino }
-    function Hide-Kino { }
     function Close-Kino([bool]$fast) {
         $k = $script:Kino; $K = $script:KC; if (-not $K) { return }
-        $script:KC = $null; $k.Vis = $false
+        $script:KC = $null; $k.Vis = $false; $k.Closing = $K
         try { $k.Timer.Stop() } catch { }
         Send ([ordered]@{ type = 'kino'; vis = $false; open = $false })
         if (-not $fast -and $K.Alive) { $K.Cmds.Enqueue('NAV:' + (Get-KinoDataUrl $true)) }
         $t = New-Object Windows.Threading.DispatcherTimer; $t.Interval = [TimeSpan]::FromMilliseconds($(if ($fast -or -not $K.Alive) { 50 } else { 2250 })); $t.Tag = $K
         $t.add_Tick({ param($s2, $e2) $s2.Stop(); $x = $s2.Tag; try { $x.Cmds.Enqueue('CLOSE') } catch { }
-            $t2 = New-Object Windows.Threading.DispatcherTimer; $t2.Interval = [TimeSpan]::FromMilliseconds(1500); $t2.Tag = $x
-            $t2.add_Tick({ param($s3, $e3) $s3.Stop(); $y = $s3.Tag; $y.Stop = $true; try { $y.PS.EndInvoke($y.H); $y.PS.Dispose() } catch { }; Log 'Kino geschlossen' }); $t2.Start() })
+            # Audit: nie im UI-Thread auf den Hintergrund-Thread warten – Ende wird abgefragt (max. ~4 s), danach notfalls hart beendet
+            $t2 = New-Object Windows.Threading.DispatcherTimer; $t2.Interval = [TimeSpan]::FromMilliseconds(250); $t2.Tag = @{ K = $x; N = 0 }
+            $t2.add_Tick({ param($s3, $e3) $y = $s3.Tag; $y.N++; $kk = $script:Kino
+                if ($y.N -eq 4) { $y.K.Stop = $true }
+                $pAlive = $false; try { if ($kk.Pid) { $pAlive = -not (Get-Process -Id $kk.Pid -ErrorAction Stop).HasExited } } catch { }
+                $done = $y.K.H.IsCompleted
+                if ((-not $done -or $pAlive) -and $y.N -lt 16) { return }
+                $s3.Stop()
+                if ($done) { try { $y.K.PS.EndInvoke($y.K.H) } catch { }; try { $y.K.PS.Dispose() } catch { } } else { try { [void]$y.K.PS.BeginStop($null, $null) } catch { }; Log 'Kino: Hintergrund-Abfrage haengt – abgebrochen' }
+                if ($pAlive -and $kk.Pending) { try { Stop-Process -Id $kk.Pid -Force -ErrorAction Stop; Log 'Kino: altes Edge-Fenster beendet' } catch { } }
+                $kk.Closing = $null; Log 'Kino geschlossen'
+                if ($kk.Pending) { $pd = $kk.Pending; $kk.Pending = $null; Open-Kino $pd.Url $pd.Resume }
+            }); $t2.Start() })
         $t.Start()
     }
     function Open-Kino([string]$url, [double]$resume) {
         if ($url -notmatch '^https://[^\s"]+$') { Log "Kino: Adresse abgelehnt ($url)"; return }
-        $k = $script:Kino; $k.Url = $url; $k.Resume = $resume; $k.Resumed = $false; $k.Last = ''; $k.ResN = -1
+        $k = $script:Kino
+        if ($k.Closing) { $k.Pending = @{ Url = $url; Resume = $resume }; Log 'Kino: wird nach dem Schliessen neu geoeffnet'; return }   # Audit: sonst landet der Start im noch schliessenden Edge
+        $k.Url = $url; $k.Resume = $resume; $k.Resumed = $false; $k.Last = ''; $k.ResN = -1
         if (-not $k.Timer) {
             $k.Timer = New-Object Windows.Threading.DispatcherTimer
             $k.Timer.Interval = [TimeSpan]::FromMilliseconds(500)
@@ -1832,7 +1840,7 @@ a($("#ln"),[{transform:"scaleX(1)",opacity:0},{transform:"scaleX(1)",opacity:0,o
         if (-not $edge) { Log 'Kino: Microsoft Edge nicht gefunden'; Send ([ordered]@{ type = 'kino'; vis = $false; open = $false; err = 'Microsoft Edge wurde nicht gefunden.' }); return }
         $m = Get-KinoMon
         $prof = Join-Path $env:LOCALAPPDATA 'GameShelfDeck\EdgeKino'
-        $a = @("--user-data-dir=`"$prof`"", '--remote-debugging-port=9333', '--no-first-run', '--no-default-browser-check', '--disable-features=msEdgeSidebarV2,msUndersideButton', '--autoplay-policy=no-user-gesture-required', '--start-fullscreen')
+        $a = @("--user-data-dir=`"$prof`"", '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check', '--disable-features=msEdgeSidebarV2,msUndersideButton', '--autoplay-policy=no-user-gesture-required', '--start-fullscreen')
         if ($m) {   # Fenster mitten in den Ziel-Bildschirm setzen (Edge rechnet in Bildpunkten des Hauptbildschirms), dann Vollbild auf diesem Bildschirm
             $sc = 1.0; try { $pm = @([DeckNative]::Monitors() | Where-Object { $_.Primary })[0]; if ($pm -and $pm.Dpi -gt 0) { $sc = $pm.Dpi / 96.0 } } catch { }
             $a += ('--window-position={0},{1}' -f [int](($m.X + $m.W / 4) / $sc), [int](($m.Y + $m.H / 4) / $sc)); $a += '--window-size=800,600'
@@ -1840,7 +1848,7 @@ a($("#ln"),[{transform:"scaleX(1)",opacity:0},{transform:"scaleX(1)",opacity:0,o
         $a += ('--app=' + (Get-KinoDataUrl $false))
         try { $pr = Start-Process -FilePath $edge -ArgumentList $a -PassThru; $k.Pid = $pr.Id } catch { Log "Kino: Edge-Start fehlgeschlagen: $_"; return }
         $k.Placed = $false; $k.PlaceAt = $null; $k.PlaceStep = 0
-        $script:KC = Start-KinoCdp; $k.Vis = $true; $k.Timer.Start()
+        $script:KC = Start-KinoCdp $prof; $k.Vis = $true; $k.Timer.Start(); $k.StartAt = Get-Date
         Log "Kino: Edge ($url)"
     }
 
@@ -2163,8 +2171,7 @@ a($("#ln"),[{transform:"scaleX(1)",opacity:0},{transform:"scaleX(1)",opacity:0,o
                 switch ([string]$m.op) {
                     'open' { $r = 0.0; try { $r = [double]$m.resume } catch { }; $script:Kino.Name = [string]$m.name; $script:Kino.Color = [string]$m.color; $script:Kino.Icon = [string]$m.icon; $script:Kino.Logo = [string]$m.logo; Open-Kino ([string]$m.url) $r }
                     'cmd' { $a = 0.0; try { $a = [double]$m.a } catch { }; Invoke-KinoCmd ([string]$m.c) $a }
-                    'hide' { Hide-Kino }
-                    'show' { Show-Kino }
+                    'show' { Front-Kino }
                     'close' { Close-Kino $false }
                 }
             }
@@ -2469,7 +2476,6 @@ a($("#ln"),[{transform:"scaleX(1)",opacity:0},{transform:"scaleX(1)",opacity:0,o
         if ($script:Hwnd -ne [IntPtr]::Zero) {
             if ([DeckNative]::MoveTo($script:Hwnd, $dx, $dy, $dw, $dh)) { Log "Deck: $dx,$dy ${dw}x$dh" }
         }
-        if ($script:Kino.Vis) { Place-Kino }
         if (-not $on -and -not $script:Idle) { $script:PlaceTries = 0 }
         if ($script:Idle -and $dockOn -and $script:IdleOk) { [void][DeckIdle]::Raise($script:Hwnd) }
         if ($on -and -not [DeckNative]::MouseDown()) {
