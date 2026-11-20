@@ -1566,6 +1566,7 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
       var o = pk.msg, el = pk.el; clearTimeout(tmo); pk = null; last = i;
       el.classList.remove("on"); setTimeout(function () { try { el.remove(); } catch (x) {} }, 240);
       o.fchOk = true; o.user = list[i].i; send(o);
+      try { var gk = gname(o.id).k; if (gk >= 0) { st.focus = gk; snapLaunch(); } } catch (x) {}   // deckos-200: Startanimation erst nach bestaetigtem Profil
     }
     function open(o) {
       if (pk) return;
@@ -2097,7 +2098,7 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
   var achQ = [], achEl = null, achBusy = false;
   function achTier(p) { return p < 0 ? ["Erfolg", "silver"] : p < 5 ? ["Ultraselten", "gold"] : p < 15 ? ["Selten", "gold"] : p < 40 ? ["Ungewöhnlich", "silver"] : ["Häufig", "bronze"]; }
   function richShow(a) { if (st.couch) return; achQ.push(a); if (!achBusy) achNext(); }
-  function launchIdx(k) { if (!GAMES[k]) return; st.focus = k; st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[k].id }); if (st.running !== k) snapLaunch(); }
+  function launchIdx(k) { if (!GAMES[k]) return; st.focus = k; st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[k].id }); if (st.running !== k && !FCH.want({ id: GAMES[k].id })) snapLaunch(); }
   function achShow(a) { if (st.couch) return; if (!fsOn("fsAch")) { islandEvent({ k: "ach", c: "#E0A63A", icon: "app:steam|M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z", t: a.name, s: "Erfolg freigeschaltet" + (a.game ? " · " + a.game : "") }, 5000); return; } achQ.push(a); if (!achBusy) achNext(); }
   function achNext() {
     var a = achQ.shift(); if (!a || false) { achBusy = false; return; } achBusy = true;
@@ -3274,7 +3275,7 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
       else if (btn === "right" || btn === "down") { spin(1, true); padRestore(); }
       else if (btn === "a" && N) {
         if (st.focus === st.running) { osGo(PI("hud")); return; }
-        st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[st.focus].id, src: "pad" }); snapLaunch(); padRestore();
+        st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[st.focus].id, src: "pad" }); if (!FCH.want({ id: GAMES[st.focus].id })) snapLaunch(); padRestore();
       }
       return;
     }
@@ -3708,7 +3709,7 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
     if (Date.now() < topSwEat) return;
     var cb = e.target.closest("[data-ctx]");
     if (cb) { var c = st.ctx; st.ctx = null; if (!cb.disabled && c && GAMES[c.k]) { var a0 = cb.getAttribute("data-ctx");
-      if (a0 === "launch") { st.focus = c.k; st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[c.k].id }); if (st.running !== c.k) snapLaunch(); }
+      if (a0 === "launch") { st.focus = c.k; st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[c.k].id }); if (st.running !== c.k && !FCH.want({ id: GAMES[c.k].id })) snapLaunch(); }
       else if (a0 === "sgdb") { st.menu = false; sgOpen(GAMES[c.k]); render(); }
       else if (a0 === "hide") { send({ type: "hide", id: GAMES[c.k].id, on: true }); render(); }
       else if (a0 === "coverReset") { send({ type: "coverReset", id: GAMES[c.k].id }); render(); }
@@ -3758,7 +3759,7 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
     var lg = e.target.closest("[data-livego]"); if (lg) { st.liveCard = null; osGo(PI("hud")); return; }
     var lv = e.target.closest("[data-live]"); if (lv) { st.liveCard = lv.getAttribute("data-live"); render(); var lcd = scr().querySelector(".livecard"); return; }
     var ub = e.target.closest("[data-uri]"); if (ub) { send({ type: "openuri", uri: ub.getAttribute("data-uri") }); if (st.frCard) { st.frCard = null; render(); } return; }
-    var fp = e.target.closest("[data-frplay]"); if (fp) { var fk = +fp.getAttribute("data-frplay"); st.frCard = null; if (GAMES[fk]) { st.focus = fk; st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[fk].id }); if (st.running !== fk) snapLaunch(); } return; }
+    var fp = e.target.closest("[data-frplay]"); if (fp) { var fk = +fp.getAttribute("data-frplay"); st.frCard = null; if (GAMES[fk]) { st.focus = fk; st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[fk].id }); if (st.running !== fk && !FCH.want({ id: GAMES[fk].id })) snapLaunch(); } return; }
     var fc = e.target.closest("[data-frclose]"); if (fc && !e.target.closest(".frcard")) { st.frCard = null; render(); return; }
     var fr = e.target.closest("[data-fr]"); if (fr && fr.getAttribute("data-fr")) { st.frCard = fr.getAttribute("data-fr"); render(); return; }
     if (e.target.closest("[data-ccclr]")) {   /* alle Mitteilungen löschen – Einträge gleiten raus, Kontrollzentrum schrumpft weich (deckos-186) */
@@ -3795,7 +3796,7 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
     if (t.hasAttribute("data-pick")) { st.focus = +t.getAttribute("data-pick"); st.tapPickAt = Date.now(); render(); return; }
     if (a === "launch") {
       if (st.focus === st.running) { osGo(PI("hud")); return; }
-      st.menu = false; st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[st.focus].id }); snapLaunch();
+      st.menu = false; st.lastLaunchAt = Date.now(); render(); send({ type: "launch", id: GAMES[st.focus].id }); if (!FCH.want({ id: GAMES[st.focus].id })) snapLaunch();
     } else if (a === "tohud") { osGo(PI("hud")); }
     else if (a === "cyclestyle") { cycle("style"); }
     else if (a === "swapdc") { cycle("dcpos"); }
