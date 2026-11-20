@@ -68,7 +68,7 @@ if (-not $own) {
     if (-not $own) { Log 'Alte Instanz reagiert nicht - Start abgebrochen.'; exit }
 }
 [void]$script:QuitEvent.Reset()
-$script:Version = 'deckos-200'
+$script:Version = 'deckos-201'
 Log '--- Start'
 Log "Version $($script:Version)"
 
@@ -1558,6 +1558,175 @@ public static class DeckIconX2 {
         } catch { Log "Start fehlgeschlagen ($($g.Name)): $_" }
     }
 
+    # ------------------------------------------------------------ Kino (deckos-201): Streaming-Player als eigenes WebView2-Fenster links auf dem Deck, 16:9
+    # Eigener Profilordner (Anmeldungen bleiben dort, getrennt vom Deck), eigener Browserprozess; existiert nur, solange das Kino offen ist.
+    # Das Deck zeigt rechts daneben die Steuerung. Abfrage des Videos per Skript in Hauptseite + Frames (AniWorld-Hoster laufen im iframe).
+    $script:Kino = @{ Win = $null; Wv = $null; Hwnd = [IntPtr]::Zero; Vis = $false; Url = ''; Resume = 0.0; Resumed = $false; Frames = (New-Object System.Collections.ArrayList); Tasks = @(); VidF = $null; Timer = $null; Last = '' }
+    $script:KinoJs = @'
+(() => {
+  if (!window.__kino) {
+    let ended = false;
+    document.addEventListener('ended', e => { if (e.target && e.target.tagName === 'VIDEO') ended = true; }, true);
+    document.addEventListener('playing', e => { if (e.target && e.target.tagName === 'VIDEO') ended = false; }, true);
+    const best = () => { const vs = Array.from(document.querySelectorAll('video')).filter(v => v.videoWidth || v.readyState > 0); if (!vs.length) return null; return vs.sort((a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight))[0]; };
+    const T = { u: '', s: '', e: '' };
+    const tx = q => { const n = document.querySelector(q); return n ? (n.textContent || '').replace(/\s+/g, ' ').trim() : ''; };
+    const meta = () => {
+      const h = location.hostname, p = location.pathname;
+      if (T.u !== location.href) { T.u = location.href; T.s = ''; T.e = ''; }
+      let s = '', e = '', w = false;
+      if (/netflix\./.test(h)) { w = /^\/watch\//.test(p); const b = document.querySelector('[data-uia="video-title"]'); if (b) { const h4 = b.querySelector('h4'); s = h4 ? h4.textContent.trim() : ''; e = Array.from(b.querySelectorAll('span')).map(x => x.textContent.trim()).filter(Boolean).join(' · '); if (!s) { s = b.textContent.trim(); e = ''; } } }
+      else if (/primevideo\.|amazon\./.test(h)) { const t = tx('.atvwebplayersdk-title-text'); w = !!t; s = t; e = tx('.atvwebplayersdk-subtitle-text'); }
+      else if (/crunchyroll\./.test(h)) { w = /\/watch\//.test(p); s = tx('.show-title-link h4, a.show-title-link, [data-t="show-title-link"]'); e = tx('h1.title, .erc-current-media-info h1'); }
+      else if (/aniworld\./.test(h)) { w = /\/episode-\d+/.test(p) || /\/film-\d+/.test(p); s = tx('.series-title h1 span') || tx('.series-title h1'); const m = /staffel-(\d+)\/episode-(\d+)/.exec(p), f = /film-(\d+)/.exec(p); const et = tx('.hosterSiteTitle h2 .episodeGermanTitle') || tx('.episodeGermanTitle'); e = (m ? 'Staffel ' + m[1] + ' · Folge ' + m[2] : f ? 'Film ' + f[1] : '') + (et ? ' · ' + et : ''); }
+      if (s) T.s = s; if (e) T.e = e;
+      return { watch: w, series: T.s, ep: T.e };
+    };
+    const css = () => { if (document.getElementById('__kinocss') || !document.documentElement) return; const st = document.createElement('style'); st.id = '__kinocss'; st.textContent = 'html{scrollbar-width:none!important}::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}'; (document.head || document.documentElement).appendChild(st); };
+    const nfx = () => { try { const api = window.netflix.appContext.state.playerApp.getAPI().videoPlayer; const id = api.getAllPlayerSessionIds()[0]; return id ? api.getVideoPlayerBySessionId(id) : null; } catch (e) { return null; } };
+    window.__kino = {
+      st: () => {
+        const v = best(), o = {};
+        try { css(); } catch (e) {}
+        if (window === window.top) { try { Object.assign(o, meta()); } catch (e) {} try { const md = navigator.mediaSession && navigator.mediaSession.metadata; o.title = (md && md.title) || document.title || ''; o.sub = (md && (md.artist || md.album)) || ''; } catch (e) {} o.url = location.href; }
+        if (v) {
+          let q = {}; try { q = v.getVideoPlaybackQuality(); } catch (e) {}
+          const d = window.devicePixelRatio || 1;
+          Object.assign(o, { v: 1, w: v.videoWidth, h: v.videoHeight, cw: Math.round(v.clientWidth * d), ch: Math.round(v.clientHeight * d), pos: v.currentTime || 0, dur: isFinite(v.duration) ? v.duration : 0, paused: v.paused, vol: v.muted ? 0 : v.volume, drop: q.droppedVideoFrames || 0, tot: q.totalVideoFrames || 0, ended: ended || v.ended });
+        }
+        return JSON.stringify(o);
+      },
+      cmd: (c, a) => {
+        const v = best(); if (!v) return 'novideo';
+        if (c === 'toggle') { if (v.paused) v.play(); else v.pause(); }
+        else if (c === 'pause') v.pause();
+        else if (c === 'seek' || c === 'seekto') { const t = Math.max(0, c === 'seek' ? (v.currentTime || 0) + a : a), p = nfx(); if (p) p.seek(Math.round(t * 1000)); else v.currentTime = t; }
+        else if (c === 'vol') { v.muted = false; v.volume = Math.max(0, Math.min(1, a)); }
+        return 'ok';
+      }
+    };
+  }
+})();
+'@
+    function Add-KinoFrame($f) {
+        try {
+            [void]$script:Kino.Frames.Add($f)
+            $f.add_Destroyed({ param($s, $e) try { $script:Kino.Frames.Remove($s); if ($script:Kino.VidF -eq $s) { $script:Kino.VidF = $null } } catch { } })
+            try { $f.add_FrameCreated({ param($s, $e) Add-KinoFrame $e.Frame }) } catch { }   # verschachtelte Frames (neuere Runtime)
+        } catch { Log "Kino-Frame: $_" }
+    }
+    function Get-KinoTargets {
+        $t = @(@{ F = $null; X = $script:Kino.Wv.CoreWebView2 })
+        foreach ($f in @($script:Kino.Frames)) { $t += @{ F = $f; X = $f } }
+        return $t
+    }
+    function Invoke-KinoCmd([string]$c, [double]$a) {
+        $k = $script:Kino; if (-not $k.Wv -or -not $k.Wv.CoreWebView2) { return }
+        $js = $script:KinoJs + "`nwindow.__kino.cmd('" + ($c -replace '[^a-z]', '') + "', " + $a.ToString([Globalization.CultureInfo]::InvariantCulture) + ")"
+        $tg = @(Get-KinoTargets | Where-Object { $_.F -eq $k.VidF })
+        if (-not $tg.Count) { $tg = @(Get-KinoTargets) }
+        foreach ($x in $tg) { try { [void]$x.X.ExecuteScriptAsync($js) } catch { } }
+    }
+    function Step-Kino {
+        $k = $script:Kino; if (-not $k.Wv -or -not $k.Wv.CoreWebView2) { return }
+        # Ergebnisse der letzten Runde einsammeln
+        if ($k.Tasks.Count) {
+            if (@($k.Tasks | Where-Object { -not $_.T.IsCompleted }).Count -and $k.Tasks[0].At -gt (Get-Date).AddSeconds(-3)) { return }
+            $top = $null; $vid = $null; $vf = $null; $area = -1
+            foreach ($t in $k.Tasks) {
+                if (-not $t.T.IsCompleted -or $t.T.IsFaulted) { continue }
+                try { $s = ConvertFrom-Json ([string]$t.T.Result); if (-not $s) { continue }; $o = ConvertFrom-Json ([string]$s) } catch { continue }
+                if ($null -eq $t.F) { $top = $o }
+                if ($o.v -and ([double]$o.cw * [double]$o.ch) -gt $area) { $area = [double]$o.cw * [double]$o.ch; $vid = $o; $vf = $t.F }
+            }
+            $k.Tasks = @()
+            if ($vid) { $k.VidF = $vf }
+            $msg = [ordered]@{ type = 'kino'; vis = $k.Vis; title = [string]$(if ($top) { $top.title }); sub = [string]$(if ($top) { $top.sub }); url = [string]$(if ($top) { $top.url }); series = [string]$(if ($top) { $top.series }); ep = [string]$(if ($top) { $top.ep }); watch = [bool]$(if ($top) { $top.watch }); v = [bool]$vid }
+            if ($vid) { foreach ($n in 'w', 'h', 'cw', 'ch', 'pos', 'dur', 'paused', 'vol', 'drop', 'tot', 'ended') { $msg[$n] = $vid.$n } }
+            # Weiterschauen: einmal an die gemerkte Stelle springen (Netflix/Prime/Crunchyroll setzen selbst fort)
+            if ($vid -and -not $k.Resumed -and $k.Resume -gt 5 -and [double]$vid.dur -gt $k.Resume -and [double]$vid.pos -lt 5) { $k.Resumed = $true; Invoke-KinoCmd 'seekto' $k.Resume; Log ("Kino: weiter bei {0} s" -f [int]$k.Resume) }
+            $j = $msg | ConvertTo-Json -Compress
+            if ($j -ne $k.Last) { $k.Last = $j; Send $msg }
+        }
+        $js = $script:KinoJs + "`nwindow.__kino.st()"
+        $at = Get-Date
+        $k.Tasks = @(foreach ($x in @(Get-KinoTargets)) { try { @{ F = $x.F; T = $x.X.ExecuteScriptAsync($js); At = $at } } catch { } })
+    }
+    function Place-Kino {
+        $k = $script:Kino; $m = $script:Mon
+        if (-not $k.Win -or -not $k.Vis -or -not $m -or $k.Hwnd -eq [IntPtr]::Zero) { return }
+        $x = $m.X
+        if ($m.H -ge $m.W) { $w = $m.W; $h = [int][math]::Round($m.W * 9 / 16.0) } else { $h = $m.H; $w = [int][math]::Min($m.W, [math]::Round($m.H * 16 / 9.0)); $x = $m.X + [int][math]::Floor(($m.W - $w) / 2) }   # mittig (20.11.)
+        if ([DeckNative]::MoveTo($k.Hwnd, $x, $m.Y, $w, $h)) { Log "Kino: $x,$($m.Y) ${w}x$h" }
+    }
+    function Show-Kino {
+        $k = $script:Kino; if (-not $k.Win) { return }
+        $k.Vis = $true
+        if ($k.Win.Visibility -ne 'Visible') { $k.Win.Show() }
+        if ($k.Hwnd -eq [IntPtr]::Zero) { $k.Hwnd = (New-Object Windows.Interop.WindowInteropHelper $k.Win).Handle }
+        Update-Layout $true; Place-Kino
+        $k.Last = ''; $k.Timer.Start()
+    }
+    function Hide-Kino {
+        $k = $script:Kino; if (-not $k.Win) { return }
+        Invoke-KinoCmd 'pause' 0
+        $k.Vis = $false; $k.Timer.Stop(); $k.Tasks = @()
+        try { $k.Win.Hide() } catch { Log "Kino ausblenden: $_" }
+        Update-Layout $true
+        Send ([ordered]@{ type = 'kino'; vis = $false; open = $true })
+    }
+    function Close-Kino {
+        $k = $script:Kino; if (-not $k.Win) { return }
+        $k.Vis = $false; try { $k.Timer.Stop() } catch { }
+        try { $k.Wv.Dispose() } catch { Log "Kino schliessen (WebView2): $_" }
+        try { $k.Win.Close() } catch { Log "Kino schliessen: $_" }
+        $k.Win = $null; $k.Wv = $null; $k.Hwnd = [IntPtr]::Zero; $k.Frames.Clear(); $k.Tasks = @(); $k.VidF = $null
+        Update-Layout $true
+        Log 'Kino geschlossen'
+        Send ([ordered]@{ type = 'kino'; vis = $false; open = $false })
+    }
+    function Open-Kino([string]$url, [double]$resume) {
+        if ($url -notmatch '^https://[^\s"]+$') { Log "Kino: Adresse abgelehnt ($url)"; return }
+        $k = $script:Kino; $k.Url = $url; $k.Resume = $resume; $k.Resumed = $false
+        if (-not $k.Timer) {
+            $k.Timer = New-Object Windows.Threading.DispatcherTimer
+            $k.Timer.Interval = [TimeSpan]::FromMilliseconds(500)
+            $k.Timer.add_Tick({ try { Step-Kino } catch { Log "Kino-Abfrage: $_" } })
+        }
+        if ($k.Win) {
+            try { $k.Wv.CoreWebView2.Navigate($url) } catch { Log "Kino navigieren: $_" }
+            Show-Kino; Log "Kino: $url"; return
+        }
+        $w = New-Object Windows.Window
+        $w.Title = 'GameShelf Kino'; $w.WindowStyle = 'None'; $w.ResizeMode = 'NoResize'; $w.ShowInTaskbar = $false; $w.ShowActivated = $false
+        $w.WindowStartupLocation = 'Manual'; $w.Left = 0; $w.Top = 0; $w.Width = 320; $w.Height = 180
+        $w.Background = [Windows.Media.Brushes]::Black
+        try { $w.Owner = $script:Win } catch { Log "Kino-Fenster ohne Besitzer: $_" }
+        $v = New-Object Microsoft.Web.WebView2.Wpf.WebView2
+        $p = New-Object Microsoft.Web.WebView2.Wpf.CoreWebView2CreationProperties
+        $p.UserDataFolder = Join-Path $env:LOCALAPPDATA 'GameShelfDeck\WebView2Kino'
+        $p.AdditionalBrowserArguments = '--disable-features=msSmartScreenProtection,CalculateNativeWinOcclusion --autoplay-policy=no-user-gesture-required'
+        $v.CreationProperties = $p
+        $v.DefaultBackgroundColor = [System.Drawing.Color]::Black
+        $w.Content = $v
+        $k.Win = $w; $k.Wv = $v
+        $v.add_CoreWebView2InitializationCompleted({
+            param($s, $e)
+            if (-not $e.IsSuccess) { Log "Kino: WebView2 nicht gestartet: $($e.InitializationException)"; Close-Kino; return }
+            try {
+                $c = $script:Kino.Wv.CoreWebView2
+                $c.Settings.IsStatusBarEnabled = $false; $c.Settings.IsZoomControlEnabled = $false; $c.Settings.IsPinchZoomEnabled = $false
+                $c.add_FrameCreated({ param($s2, $e2) Add-KinoFrame $e2.Frame })
+                $c.add_NewWindowRequested({ param($s2, $e2) $e2.Handled = $true; Log "Kino: Popup blockiert ($($e2.Uri))" })   # Werbe-Fenster der Hoster
+                $c.add_ProcessFailed({ param($s2, $e2) Log "Kino: WebView2-Prozess ausgefallen ($($e2.ProcessFailedKind))"; try { $script:Kino.Wv.CoreWebView2.Reload() } catch { } })
+                $c.Navigate($script:Kino.Url)
+                Log "Kino: $($script:Kino.Url)"
+            } catch { Log "Kino-Einrichtung: $_" }
+        })
+        Show-Kino
+        try { [void]$v.EnsureCoreWebView2Async() } catch { Log "Kino: WebView2: $_"; Close-Kino }
+    }
+
     # ------------------------------------------------------------ Selbst-Neustart, wenn WebView2 nicht hochkommt (deckos-178)
     # Hoechstens 3 Versuche in 10 Minuten; nicht, wenn das Deck gerade beendet oder von einem neuen Start abgeloest wird.
     $script:Closing = $false
@@ -1873,6 +2042,15 @@ public static class DeckIconX2 {
                 else { Start-DeckGame ([string]$m.id) $m.user }
             }
             'fchprof' { Send-FchProfiles }
+            'kino' {   # deckos-201
+                switch ([string]$m.op) {
+                    'open' { $r = 0.0; try { $r = [double]$m.resume } catch { }; Open-Kino ([string]$m.url) $r }
+                    'cmd' { $a = 0.0; try { $a = [double]$m.a } catch { }; Invoke-KinoCmd ([string]$m.c) $a }
+                    'hide' { Hide-Kino }
+                    'show' { Show-Kino }
+                    'close' { Close-Kino }
+                }
+            }
             'fchavpick' { Select-FchAvatar ([string]$m.name) }
             'fchavclear' { Clear-FchAvatar ([string]$m.name) }
             'fchcrop' { Set-FchCrop ([string]$m.name) ([string]$m.crop) }
@@ -2124,7 +2302,7 @@ public static class DeckIconX2 {
         }
         $mins = [double]$script:Settings.idleMin; if ($mins -lt 1) { $mins = 5 }
         if ([bool]$script:Settings.idleOn -and $quiet -ge ($mins * 60)) { $want = $true }
-        if ($script:Running -or $script:Couch) { $want = $false; $script:IdlePrev = $null }
+        if ($script:Running -or $script:Couch -or $script:Kino.Vis) { $want = $false; $script:IdlePrev = $null }
         if ($want -eq $script:Idle) { return }
         $script:Idle = $want
         Log $(if ($want) { "Idle-Bildschirm an (seit $([int]$quiet) s keine Eingabe)" } else { 'Idle-Bildschirm aus' })
@@ -2145,7 +2323,7 @@ public static class DeckIconX2 {
         if ($on -ne $script:DiscordOn) { Log ("Discord {0}" -f $(if ($on) { 'offen' } else { 'zu' })) }
         $script:Discord = $h; $script:DiscordOn = $on
         $dockOn = $on
-        if ($script:Idle) { $on = $false }   # Idle-Bildschirm: Deck ueber die ganze Breite, Discord bleibt darunter liegen
+        if ($script:Idle -or $script:Kino.Vis) { $on = $false }   # Kino (deckos-201): Deck ueber die ganze Breite, Player liegt links darueber   # Idle-Bildschirm: Deck ueber die ganze Breite, Discord bleibt darunter liegen
 
         $portrait = $m.H -ge $m.W
         $scale = $m.Dpi / 96.0
@@ -2170,6 +2348,7 @@ public static class DeckIconX2 {
         if ($script:Hwnd -ne [IntPtr]::Zero) {
             if ([DeckNative]::MoveTo($script:Hwnd, $dx, $dy, $dw, $dh)) { Log "Deck: $dx,$dy ${dw}x$dh" }
         }
+        if ($script:Kino.Vis) { Place-Kino }
         if (-not $on -and -not $script:Idle) { $script:PlaceTries = 0 }
         if ($script:Idle -and $dockOn -and $script:IdleOk) { [void][DeckIdle]::Raise($script:Hwnd) }
         if ($on -and -not [DeckNative]::MouseDown()) {
