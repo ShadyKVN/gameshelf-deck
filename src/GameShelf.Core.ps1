@@ -357,6 +357,8 @@ function Get-PokeDinnerGames($cfg) {
 function Get-FritchiiGames($cfg) {
     $out = @()
     $exe = [string]$cfg.fchExe; $game = [string]$cfg.fchGame
+    # deckos-199: Fritchii heisst seit v6 fritchii.exe (frueher lichii.exe) - fehlt die eingetragene Datei, im selben Ordner nach der anderen suchen
+    if ($exe -and -not (Test-Path -LiteralPath $exe)) { $dir = Split-Path -Parent $exe; if ($dir) { foreach ($n in 'fritchii.exe', 'lichii.exe') { $cand = Join-Path $dir $n; if (Test-Path -LiteralPath $cand) { $exe = $cand; break } } } }
     if (-not $exe -or -not $game -or -not (Test-Path -LiteralPath $exe) -or -not (Test-Path -LiteralPath $game)) { return $out }
     $name = [string]$cfg.fchName
     if (-not $name) { $name = ([IO.Path]::GetFileNameWithoutExtension($game) -replace '\s*\[[^\]]*\]', '').Trim() }

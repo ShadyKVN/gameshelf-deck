@@ -11,7 +11,7 @@ $script:CacheFile = Join-Path $script:Root 'cache.json'
 $script:CoverDir = Join-Path $script:Root 'covers'
 $script:UserDir = Join-Path $script:Root 'user'
 $script:Lib = Join-Path $script:Root 'lib'
-$script:EmuProc = @{ Eden = 'eden'; PokeDinner = 'eglantine'; Fritchii = 'lichii' }
+$script:EmuProc = @{ Eden = 'eden'; PokeDinner = 'eglantine'; Fritchii = 'fritchii,lichii' }   # deckos-199: Prozessnamen komma-getrennt (Fritchii heisst seit v6 fritchii.exe)
 $script:NamesFile = Join-Path $script:UserDir 'names.json'
 $script:HiddenFile = Join-Path $script:UserDir 'hidden.json'
 $script:HiddenMsg = @()
@@ -68,7 +68,7 @@ if (-not $own) {
     if (-not $own) { Log 'Alte Instanz reagiert nicht - Start abgebrochen.'; exit }
 }
 [void]$script:QuitEvent.Reset()
-$script:Version = 'deckos-198'
+$script:Version = 'deckos-199'
 Log '--- Start'
 Log "Version $($script:Version)"
 
@@ -2220,7 +2220,7 @@ public static class DeckIconX2 {
             try {
                 $anyEmu = $false
                 foreach ($src in $script:EmuProc.Keys) {
-                    $ep = @([Diagnostics.Process]::GetProcessesByName($script:EmuProc[$src]))
+                    $ep = @(([string]$script:EmuProc[$src]) -split ',' | ForEach-Object { [Diagnostics.Process]::GetProcessesByName($_.Trim()) })
                     if ($ep.Count -eq 0) { continue }
                     $anyEmu = $true
                     if ($script:EmuRun -and $script:EmuRun.src -eq $src) { $id = $script:EmuRun.id; $name = $script:EmuRun.name; break }
