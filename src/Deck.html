@@ -1306,6 +1306,8 @@ body.game-on .n-blob, body.game-on .n-hero, body.game-on .n-cov, body.game-on .n
 .kv-seg { transition: left .5s cubic-bezier(.2,.8,.2,1); position: absolute; top: 34px; z-index: 6; transform: translateX(-100%); display: inline-flex; padding: 4px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); }
 .kv-seg button { width: 56px; height: 48px; border-radius: 999px; border: 0; background: transparent; display: grid; place-items: center; color: rgba(255,255,255,.62); cursor: pointer; padding: 0; }
 .kv-seg button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.kv-kbtn button { width: auto !important; padding: 0 20px 0 6px !important; gap: 12px; display: inline-flex !important; align-items: center; color: #F2F2F5 !important; font-family: inherit; font-size: 16px; font-weight: 600; max-width: 520px; white-space: nowrap; }
+.kv-kbtn .kv-kic .kv-sv { width: 36px; height: 36px; border-radius: 10px; font-size: 16px; } .kv-kbtn .kv-kt { overflow: hidden; text-overflow: ellipsis; }
 .kv-seg button.on { background: rgba(255,255,255,.16); color: #F2F2F5; }
 .nxpage.kv-vid > .n-pan:not(.kv-pan) { visibility: hidden; }
 .kv-pan { display: none; padding: 30px; box-sizing: border-box; }
@@ -1347,37 +1349,51 @@ body.game-on .n-blob, body.game-on .n-hero, body.game-on .n-cov, body.game-on .n
 #kino.dim .kn-amb { opacity: .03; transition: opacity 1.2s ease; }
 #kino .kn-clk { position: absolute; right: 30px; top: 8px; height: 56px; display: flex; align-items: center; font-size: 38px; font-weight: 500; letter-spacing: -.02em; color: #E6E6EC; font-variant-numeric: tabular-nums; transition: opacity .3s; }
 #kino.dim .kn-clk { opacity: .35; transition: opacity 1.2s; }
+.kv-ask { position: fixed; inset: 0; z-index: 9200; background: rgba(5,6,9,.62); backdrop-filter: blur(10px); display: grid; place-items: center; }
+.kv-askb { min-width: 560px; padding: 30px 32px 26px; border-radius: 28px; background: rgba(30,31,38,.92); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 30px 90px rgba(0,0,0,.55); display: flex; flex-direction: column; gap: 8px; color: #F2F2F5; font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; }
+.kv-askb b { font-size: 26px; }
+.kv-mmap { position: relative; margin: 24px auto 4px; }
+.kv-askb .kv-mon { position: absolute; border-radius: 14px; border: 2px solid rgba(255,255,255,.2); background: rgba(255,255,255,.07); color: #F2F2F5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-family: inherit; padding: 0; }
+.kv-askb .kv-mon b { font-size: 34px; font-weight: 800; } .kv-mon span { font-size: 14px !important; color: #C9C9D1 !important; }
+.kv-askb .kv-mon.on { border-color: #4C8DFF; background: rgba(76,141,255,.22); box-shadow: 0 0 30px rgba(76,141,255,.35); }
+.kv-askb .kv-mon.deck { opacity: .45; cursor: default; border-style: dashed; } .kv-askb span { font-size: 18px; color: #C9C9D1; }
+.kv-askb div { display: flex; gap: 12px; justify-content: flex-end; margin-top: 18px; }
+.kv-askb button { height: 56px; padding: 0 26px; border-radius: 999px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.1); color: #F2F2F5; font: inherit; font-size: 17px; font-weight: 600; cursor: pointer; }
+.kv-askb button.kv-rp { background: #fff; color: #111; border-color: #fff; }
 #kino .kn-amb2 { left: auto; right: -400px; opacity: .1; }
-#kino .kn-pn { position: absolute; border-radius: 26px; padding: 28px; box-sizing: border-box; display: flex; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.11); box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 24px 60px rgba(0,0,0,.35); }
-#kino .kn-l { flex-direction: column; }
+#kino .kn-pn { position: absolute; border-radius: 28px; padding: 28px 30px 26px 36px; box-sizing: border-box; display: flex; gap: 34px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.11); box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 24px 60px rgba(0,0,0,.35); }
+#kino .kn-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+#kino .kn-top { display: flex; align-items: center; gap: 10px; }
 #kino .kn-svc { display: flex; align-items: center; gap: 12px; }
-#kino .kn-svc .kv-sv { width: 38px; height: 38px; border-radius: 11px; font-size: 17px; }
-#kino .kn-ti { font-size: 36px; font-weight: 700; margin-top: 26px; line-height: 1.12; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-#kino .kn-sub { font-size: 19px; color: #A3A3AD; margin-top: 8px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-#kino .kn-low { margin-top: auto; }
-#kino .kn-bar { height: 24px; position: relative; cursor: pointer; }
-#kino .kn-bar::before { content: ""; position: absolute; left: 0; right: 0; top: 9px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.14); }
-#kino .kn-bar i { position: absolute; left: 0; top: 9px; height: 6px; border-radius: 3px; background: #4C8DFF; width: 0; }
-#kino .kn-tm { display: flex; justify-content: space-between; margin-top: 4px; font-size: 15px; font-weight: 600; color: #C9C9D1; font-variant-numeric: tabular-nums; }
-#kino .kn-ctl { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 26px; }
-#kino .kn-b { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); color: #F2F2F5; cursor: pointer; transition: transform .15s; }
-#kino .kn-b svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-#kino .kn-b.kn-pp { width: 112px; height: 112px; background: #fff; color: #111; border-color: #fff; }
-#kino .kn-b.kn-pp svg { width: 36px; height: 36px; fill: currentColor; stroke: none; }
-#kino .kn-r { gap: 28px; }
-#kino .kn-vc { width: 140px; flex: none; display: flex; flex-direction: column; align-items: center; }
-#kino .kn-vp { font-size: 22px; font-weight: 700; margin-top: 8px; font-variant-numeric: tabular-nums; }
-#kino .kn-vol { flex: 1; width: 96px; margin-top: 16px; border-radius: 30px; background: rgba(255,255,255,.1); position: relative; overflow: hidden; touch-action: none; cursor: pointer; }
+#kino .kn-svc .kv-sv { width: 44px; height: 44px; border-radius: 12px; font-size: 19px; }
+#kino .kn-ib { height: 58px; min-width: 58px; padding: 0 16px; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); color: #F2F2F5; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 600; white-space: nowrap; box-sizing: border-box; }
+#kino .kn-ib:not(.kn-tmb) { width: 58px; padding: 0; }
+#kino .kn-ib svg, #kino .kn-mute svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+#kino .kn-tmb.on { background: rgba(255,255,255,.24); border-color: rgba(255,255,255,.4); }
+#kino .kn-tmrs:empty { display: none; }
+#kino .kn-end { background: rgba(224,82,82,.14); border-color: rgba(224,82,82,.45); color: #FFB4B4; }
+#kino .kn-mid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 40px; }
+#kino .kn-info { min-width: 0; }
+#kino .kn-ti { font-size: 54px; font-weight: 800; line-height: 1.05; letter-spacing: -.02em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#kino .kn-sub { font-size: 22px; color: #C9C9D1; margin-top: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#kino .kn-ctl { display: flex; align-items: center; gap: 28px; }
+#kino .kn-b { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); color: #F2F2F5; cursor: pointer; transition: transform .15s; }
+#kino .kn-b svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#kino .kn-b.kn-pp { width: 148px; height: 148px; background: #fff; color: #111; border-color: #fff; }
+#kino .kn-b.kn-pp svg { width: 48px; height: 48px; fill: currentColor; stroke: none; }
+#kino .kn-bar { height: 30px; position: relative; cursor: pointer; }
+#kino .kn-bar::before { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 10px; border-radius: 5px; background: rgba(255,255,255,.14); }
+#kino .kn-bar i { position: absolute; left: 0; top: 10px; height: 10px; border-radius: 5px; background: #4C8DFF; width: 0; }
+#kino .kn-bar b { position: absolute; top: 4px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 6px rgba(76,141,255,.35); left: 0; }
+#kino .kn-tm { display: flex; justify-content: space-between; margin-top: 4px; font-size: 17px; font-weight: 600; color: #C9C9D1; font-variant-numeric: tabular-nums; }
+#kino .kn-vc { width: 132px; flex: none; display: flex; flex-direction: column; align-items: center; padding-left: 30px; border-left: 1px solid rgba(255,255,255,.09); }
+#kino .kn-vp { font-size: 24px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
+#kino .kn-vol { flex: 1; width: 100px; margin-top: 14px; border-radius: 32px; background: rgba(255,255,255,.1); position: relative; overflow: hidden; touch-action: none; cursor: pointer; }
 #kino .kn-vol i { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.88); height: 0; }
 #kino .kn-vol b { position: absolute; left: 50%; top: 46px; transform: translateX(-50%); width: 30px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.3); pointer-events: none; }
-#kino .kn-mute { margin-top: 14px; width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); display: grid; place-items: center; color: #F2F2F5; cursor: pointer; }
+#kino .kn-mute { margin-top: 14px; width: 58px; height: 58px; border-radius: 50%; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); display: grid; place-items: center; color: #F2F2F5; cursor: pointer; }
 #kino .kn-mute.on { background: rgba(224,82,82,.2); border-color: rgba(224,82,82,.5); color: #FFB4B4; }
-#kino .kn-mute svg, #kino .kn-p svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-#kino .kn-nav { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
-#kino .kn-p { height: 54px; padding: 0 20px; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); font-family: inherit; font-size: 16px; font-weight: 600; line-height: 1; color: #F2F2F5; display: flex; align-items: center; gap: 10px; cursor: pointer; white-space: nowrap; flex: none; width: 100%; box-sizing: border-box; }
-#kino .kn-p.on { background: rgba(255,255,255,.24); border-color: rgba(255,255,255,.4); }
-#kino .kn-tmrs { font-size: 14px; color: #8E8E99; min-height: 18px; }
-#kino .kn-end { margin-top: auto; justify-content: center; background: rgba(224,82,82,.14); border-color: rgba(224,82,82,.45); color: #FFB4B4; }
+#kino.kn-narrow .kn-mid { grid-template-columns: 1fr auto; } #kino.kn-narrow .kn-mid > span { display: none; } #kino.kn-narrow .kn-ti { font-size: 40px; } #kino.kn-narrow .kn-b.kn-pp { width: 120px; height: 120px; } #kino.kn-narrow .kn-b { width: 80px; height: 80px; }
 .kv-sv { position: relative; overflow: hidden; }
 .kv-sv img { position: absolute; inset: 0; width: 100%; height: 100%; padding: 14%; box-sizing: border-box; object-fit: contain; background: #1A1B21; }
 @media (prefers-reduced-motion: reduce) { .kv-tile, .kv-row, #kino .kn-b { transition: none; } }
@@ -1498,6 +1514,22 @@ body.game-on .rv-amb i { animation-play-state: paused; }   /* im Spiel steht die
 .nxroot .n-fdr > i { background: linear-gradient(0deg, rgba(255,255,255,.55), rgba(255,255,255,.92)); border-radius: 0; }
 .nxroot .n-fdr > i::after { content: ""; position: absolute; left: 50%; top: 9px; width: 22px; height: 4px; margin-left: -11px; border-radius: 2px; background: rgba(0,0,0,.35); }
 .nxroot .n-ch b { font-size: 17px; } .nxroot .n-ch .n-pc { font-size: 15px; }
+/* deckos-203: alle Regler im Kontrollzentrum-Stil (helle Füllung, dunkle Fläche, Symbol unten, keine Griffleiste) */
+.nxroot .n-fdr, .n-pill, #kino .kn-vol { background: rgba(255,255,255,.14) !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); backdrop-filter: blur(20px); }
+.nxroot .n-fdr { width: 76px; border-radius: 24px; }
+.nxroot .n-fdr > i, #kino .kn-vol > i { background: #F2F2F6 !important; border-radius: 0; }
+.nxroot .n-fdr > i::after, .n-pill > i::after { display: none !important; }
+.nxroot .n-fdr::after, #kino .kn-vol::after, .n-pill::after { content: ""; position: absolute; left: 50%; bottom: 18px; width: 26px; height: 26px; margin-left: -13px; background: #7A7A85; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9.5v5h4l5 4.5V5L7 9.5z' fill='black'/%3E%3Cpath d='M16 8.5a5 5 0 0 1 0 7M18.6 6a8.5 8.5 0 0 1 0 12' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9.5v5h4l5 4.5V5L7 9.5z' fill='black'/%3E%3Cpath d='M16 8.5a5 5 0 0 1 0 7M18.6 6a8.5 8.5 0 0 1 0 12' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; pointer-events: none; z-index: 1; }
+.n-pill { border-radius: 30px; }
+.n-pill::after { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4.5' fill='black'/%3E%3Cpath d='M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4.5' fill='black'/%3E%3Cpath d='M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); width: 26px; height: 26px; margin-left: -13px; bottom: 20px; }
+.n-room.n-cmp .n-pill::after { width: 20px; height: 20px; margin-left: -10px; bottom: 14px; }
+.n-pill > i { background: color-mix(in srgb, var(--lc) 35%, #F2F2F6) !important; }
+#kino .kn-vol { border-radius: 30px; } #kino .kn-vol > b { display: none; }
+#kino .kn-vol::after { width: 30px; height: 30px; margin-left: -15px; bottom: 22px; }
+.n-bri, .ccbri { background: rgba(255,255,255,.14) !important; border-color: rgba(255,255,255,.06) !important; }
+.n-bri > i, .ccbri > i { background: #F2F2F6 !important; }
+.n-bri svg { stroke: #7A7A85 !important; z-index: 1; }
+.ccbri > svg { color: #7A7A85; stroke: #7A7A85; } .ccbri > b, .ccbri > em { color: #fff; mix-blend-mode: difference; }
 .nxroot .n-mNow .n-ti { letter-spacing: -1px; }
 
 /* --- Einstellungen neu (Wunsch 15.11.): Gruppen als Karten in Spalten, Zeilen wie eine Liste, große Tippflächen --- */
@@ -1728,10 +1760,9 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
   // Kino (deckos-201): Streaming im eigenen Player-Fenster (Host), Steuerung daneben. Verlauf bleibt lokal in diesem Deck.
   var KINO = (function () {
     var SVC = [
-      { k: "aniworld", i: "https://www.google.com/s2/favicons?domain=aniworld.to&sz=128", n: "AniWorld", u: "https://aniworld.to/", c: "#F5A524", f: "#111", h: /aniworld\.to/ },
-      { k: "netflix", i: "https://www.google.com/s2/favicons?domain=netflix.com&sz=128", n: "Netflix", u: "https://www.netflix.com/browse", c: "#B8202A", f: "#fff", h: /netflix\.com/ },
-      { k: "prime", i: "https://www.google.com/s2/favicons?domain=primevideo.com&sz=128", n: "Prime Video", u: "https://www.primevideo.com/", c: "#1F6FD1", f: "#fff", h: /primevideo\.com|amazon\./ },
-      { k: "crunchy", i: "https://www.google.com/s2/favicons?domain=crunchyroll.com&sz=128", n: "Crunchyroll", u: "https://www.crunchyroll.com/", c: "#E2661F", f: "#fff", h: /crunchyroll\.com/ }];
+      { k: "netflix", L: "https://upload.wikimedia.org/wikipedia/commons/7/75/Netflix_icon.svg", i: "https://www.google.com/s2/favicons?domain=netflix.com&sz=128", n: "Netflix", u: "https://www.netflix.com/browse", c: "#B8202A", f: "#fff", h: /netflix\.com/ },
+      { k: "prime", L: "https://upload.wikimedia.org/wikipedia/commons/9/90/Prime_Video_logo_%282024%29.svg", i: "https://www.google.com/s2/favicons?domain=primevideo.com&sz=128", n: "Prime Video", u: "https://www.primevideo.com/", c: "#1F6FD1", f: "#fff", h: /primevideo\.com|amazon\./ },
+      { k: "crunchy", L: "https://upload.wikimedia.org/wikipedia/commons/0/08/Crunchyroll_Logo.png", i: "https://www.google.com/s2/favicons?domain=crunchyroll.com&sz=128", n: "Crunchyroll", u: "https://www.crunchyroll.com/", c: "#E2661F", f: "#fff", h: /crunchyroll\.com/ }];
     var KV = (function () { try { var v = parseFloat(localStorage.getItem("gsKinoVol")); return isNaN(v) ? 1 : Math.max(0, Math.min(1, v)); } catch (x) { return 1; } })();
     function kvSet(v) { KV = Math.max(0, Math.min(1, v)); try { localStorage.setItem("gsKinoVol", String(KV)); } catch (x) {} }
     var S = { seg: "music", open: false, vis: false, svc: null, m: {}, fpsAt: 0, fpsTot: 0, fps: 0, tmr: "off", tmrAt: 0, volDrag: false, saveAt: 0, el: null, c: null };
@@ -1739,124 +1770,138 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
     function svcOf(u) { for (var i = 0; i < SVC.length; i++) if (SVC[i].h.test(String(u || ""))) return SVC[i]; return null; }
     function svcK(k) { for (var i = 0; i < SVC.length; i++) if (SVC[i].k === k) return SVC[i]; return SVC[0]; }
     function ico(s, cls) { return '<span class="kv-sv' + (cls ? " " + cls : "") + '" style="background:' + s.c + ";color:" + s.f + '">' + s.n.charAt(0) + '<img alt="" src="' + s.i + '" onerror="this.remove()"></span>'; }
-    function hist() { try { var h = JSON.parse(localStorage.getItem("gsKinoHist") || "[]"); return Array.isArray(h) ? h : []; } catch (x) { return []; } }
+    function hist() { try { var h = JSON.parse(localStorage.getItem("gsKinoHist") || "[]"); return Array.isArray(h) ? h.filter(function (x) { return x && x.s !== "aniworld"; }) : []; } catch (x) { return []; } }
     function histSave(h) { try { localStorage.setItem("gsKinoHist", JSON.stringify(h.slice(0, 12))); } catch (x) {} }
     function ago(t) { var d = new Date(t), n = new Date(), a = new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime(), dd = Math.floor((a - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / 864e5); if (dd <= 0) return "heute"; if (dd === 1) return "gestern"; if (dd < 7) return ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"][d.getDay()]; return d.getDate() + "." + (d.getMonth() + 1) + "."; }
     function ft(s) { s = Math.max(0, Math.floor(+s || 0)); var h = s / 3600 | 0, m = (s % 3600) / 60 | 0, x = s % 60; return (h ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (x < 10 ? "0" : "") + x; }
     function cleanT(t, s) { t = String(t || "").split(/\s+[|–-]\s+(AniWorld|Netflix|Prime Video|Crunchyroll|Amazon)/i)[0].trim(); return t && (!s || t.toLowerCase() !== s.n.toLowerCase()) ? t : ""; }
     // ---------- Medien › Video ----------
-    function mount(c, nW, mW, RW) {
-      S.c = c; c.classList.toggle("kv-vid", S.seg === "video");
-      var rW = mW, lW = nW;   // gleiche Flaechen wie Musik: Umschalter bleibt an derselben Stelle
-      var sg = document.createElement("div"); sg.className = "kv-seg"; S.segL = [16 + nW - 24, 16 + lW - 24];
-      sg.innerHTML = '<button type="button" data-kvseg="music" aria-label="Musik" title="Musik"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg></button><button type="button" data-kvseg="video" aria-label="Video" title="Video"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.2v5.6l4.6-2.8z"/></svg></button>';
-      c.appendChild(sg);
-      var l = document.createElement("div"); l.className = "n-pan n-in kv-pan kv-l"; l.style.cssText = "left:16px;width:" + lW + "px;height:calc(100% - 36px)"; c.appendChild(l);
-      var r = document.createElement("div"); r.className = "n-pan n-in kv-pan kv-r"; r.style.cssText = "left:" + (RW - 16 - rW) + "px;width:" + rW + "px;height:calc(100% - 36px)"; c.appendChild(r);
-      c.addEventListener("click", tapOv, true);
+    function mount(c, nW, mW, RW) {   // deckos-203: Medien-Tab zeigt nur noch einen Knopf zur Kino-Steuerung, solange der Player offen ist
+      S.c = c; S.seg = "music";
+      var sg = document.createElement("div"); sg.className = "kv-seg kv-kbtn"; sg.style.left = (16 + nW - 24) + "px";
+      sg.innerHTML = '<button type="button" data-kvback="1" aria-label="Kino-Steuerung"><span class="kv-kic"></span><span class="kv-kt">Kino</span></button>';
+      c.appendChild(sg); c.addEventListener("click", tapOv, true);
       draw();
     }
     function draw() {
-      var c = S.c; if (!c || !c.isConnected) return;
-      c.classList.toggle("kv-vid", S.seg === "video");
-      var sgE = c.querySelector(".kv-seg"); if (sgE && S.segL) sgE.style.left = S.segL[S.seg === "video" ? 1 : 0] + "px";
-      c.querySelectorAll("[data-kvseg]").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-kvseg") === S.seg); });
-      var l = c.querySelector(".kv-l"), r = c.querySelector(".kv-r"); if (!l || !r) return;
-      var h = hist(), last = {}; h.forEach(function (x) { if (!last[x.s]) last[x.s] = x.at; });
-      var lh = '<div class="kv-h" style="margin-top:2px">Was schauen wir?</div><div class="kv-grid">' + SVC.map(function (s) {
-        return '<button type="button" class="kv-tile" data-kvopen="' + s.k + '">' + ico(s) + '<span><span class="kv-tn">' + e(s.n) + '</span><span class="kv-ts">' + (last[s.k] ? "zuletzt " + ago(last[s.k]) : "noch nicht geöffnet") + "</span></span></button>"; }).join("") + "</div>";
-      if (S.open && !S.vis) { var ps = S.svc || SVC[0], pm = S.m || {}, pw = pm.watch !== false && pm.v, pf = pw && pm.dur > 0 ? Math.max(0, Math.min(1, pm.pos / pm.dur)) : 0;
-        lh += '<div class="kv-run">' + ico(ps) + '<span class="kv-rt"><span class="kv-lab">Pausiert · ' + e(ps.n) + '</span><b>' + e(pw ? (pm.series || cleanT(pm.title, ps) || ps.n) : "Übersicht") + '</b><small>' + e(pw ? [pm.ep, pm.dur > 0 ? "noch " + ft(pm.dur - pm.pos) : ""].filter(Boolean).join(" · ") : "Noch nichts ausgewählt") + '</small>' + (pf ? '<i style="--f:' + (pf * 100).toFixed(1) + '%"></i>' : "") + '</span>' +
-          '<button type="button" class="kv-rb kv-rp" data-kvback="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>Weiterschauen</button><button type="button" class="kv-rb" data-kvclose="1" aria-label="Kino beenden"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'; }
-      else lh += '<div class="kv-note">Anmelden geht beim ersten Öffnen direkt im Player und bleibt danach gespeichert. Apple TV läuft im Deck nicht (kein Kopierschutz-Modul dafür).</div>';
-      l.innerHTML = lh;
-      var rows = h.slice(0, 8);
-      r.innerHTML = '<div class="kv-lab">Zuletzt</div>' + (rows.length ? '<div class="kv-list">' + rows.map(function (x, i) {
-        var s = svcK(x.s), done = x.dur > 0 && x.pos > x.dur - 90;
-        return '<button type="button" class="kv-row" data-kvhist="' + i + '">' + ico(s) + '<span><span class="kv-tn">' + e(x.t || s.n) + '</span><span class="kv-ts">' + ago(x.at) + " · " + (done ? "zu Ende geschaut" : "bei " + ft(x.pos) + " aufgehört") + "</span></span>" + (i === 0 && !done ? '<span class="kv-go">Weiter</span>' : "") + "</button>"; }).join("") + "</div>"
-        : '<div class="kv-empty">Hier erscheint, was Sie im Kino geschaut haben – mit der Stelle, an der Sie aufgehört haben.</div>');
+      var c = S.c; if (!c || !c.isConnected) return; var b = c.querySelector(".kv-kbtn"); if (!b) return;
+      b.style.display = S.open ? "" : "none";
+      if (S.open) { var sv = S.svc || SVC[0], m = S.m || {}; b.querySelector(".kv-kic").innerHTML = ico(sv); b.querySelector(".kv-kt").textContent = (m.v && m.watch !== false ? (m.paused ? "Pausiert · " : "Läuft · ") : "") + (m.series || sv.n); }
     }
-    function swap(to) {
-      if (to === S.seg) return; var c = S.c, rm = false; try { rm = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (x) {}
-      var sel = function (seg) { return Array.prototype.slice.call(c.querySelectorAll(seg === "video" ? ":scope > .kv-pan" : ":scope > .n-pan:not(.kv-pan)")); };
-      if (rm || !c.animate) { S.seg = to; draw(); return; }
-      var out = sel(S.seg), dx = to === "video" ? -1 : 1; S.busySwap = true;
-      out.forEach(function (el, i) { el.animate([{ opacity: 1, transform: "none", filter: "blur(0)" }, { opacity: 0, transform: "translateX(" + (dx * 40) + "px) scale(.97)", filter: "blur(8px)" }], { duration: 200, delay: i * 30, easing: "cubic-bezier(.4,0,1,1)", fill: "forwards" }); });
-      setTimeout(function () {
-        out.forEach(function (el) { el.getAnimations().forEach(function (a) { a.cancel(); }); });
-        S.seg = to; draw(); S.busySwap = false;
-        sel(to).forEach(function (el, i) { el.animate([{ opacity: 0, transform: "translateX(" + (-dx * 60) + "px) scale(.97)", filter: "blur(8px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }], { duration: 520, delay: i * 70, easing: "cubic-bezier(.2,1,.3,1)", fill: "backwards" }); });
-      }, 230);
+    function runUpd() {   // Karte „Läuft“ live nachführen, ohne sie neu zu bauen (Tipps gehen nicht verloren)
+      var c = S.c, r = c && c.querySelector(".kv-run"); if (!r) return;
+      var ps = S.svc || SVC[0], pm = S.m || {}, pw = pm.watch !== false && pm.v, pf = pw && pm.dur > 0 ? Math.max(0, Math.min(1, pm.pos / pm.dur)) : 0;
+      r.querySelector(".kv-rl").textContent = (pw ? (pm.paused ? "Pausiert" : "Läuft") : "Geöffnet") + " · " + ps.n + " · Hauptmonitor";
+      r.querySelector("b").textContent = pw ? (pm.series || cleanT(pm.title, ps) || ps.n) : "Titel auswählen";
+      r.querySelector("small").textContent = pw ? [pm.ep, pm.dur > 0 ? "noch " + ft(pm.dur - pm.pos) : ""].filter(Boolean).join(" · ") : "Auf dem Hauptmonitor eine Serie oder einen Film starten";
+      var bi = r.querySelector(".kv-rt i"); bi.style.display = pf ? "" : "none"; bi.style.setProperty("--f", (pf * 100).toFixed(1) + "%");
+      r.querySelector("[data-kvpp]").innerHTML = pw && !pm.paused ? '<svg viewBox="0 0 24 24" aria-hidden="true" style="fill:currentColor;stroke:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true" style="fill:currentColor;stroke:none"><path d="M7 4l13 8-13 8z"/></svg>';
     }
     function tapOv(ev) {
-      var t = ev.target.closest("[data-kvseg],[data-kvopen],[data-kvhist],[data-kvback],[data-kvclose]"); if (!t) return;
+      var t = ev.target.closest("[data-kvseg],[data-kvopen],[data-kvhist],[data-kvback],[data-kvclose],[data-kvpp]"); if (!t) return;
       ev.stopPropagation(); ev.preventDefault();
       if (t.hasAttribute("data-kvseg")) { swap(t.getAttribute("data-kvseg")); return; }
       if (t.hasAttribute("data-kvopen")) { var s = svcK(t.getAttribute("data-kvopen")); open(s.u, 0, s, t); return; }
       if (t.hasAttribute("data-kvhist")) { var x = hist()[+t.getAttribute("data-kvhist")]; if (x) { var done = x.dur > 0 && x.pos > x.dur - 90; open(x.u, done ? 0 : x.pos, svcK(x.s), t); } return; }
-      if (t.hasAttribute("data-kvback")) { var bk = t.closest(".kv-run") || t; intro(bk, S.svc || SVC[0], function () { send({ type: "kino", op: "show" }); }); return; }
+      if (t.hasAttribute("data-kvback")) { var bk = t.closest(".kv-run") || t; S.back = st.osPage; intro(bk, S.svc || SVC[0], function () {}); return; }
+      if (t.hasAttribute("data-kvpp")) { send({ type: "kino", op: "cmd", c: "toggle" }); if (S.m) S.m.paused = !S.m.paused; runUpd(); return; }
       if (t.hasAttribute("data-kvclose")) { send({ type: "kino", op: "close" }); return; }
     }
     // ---------- Kino-Ansicht ----------
     function rmo() { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (x) { return false; } }
     function open(url, resume, s, from) {
+      var sv = s || svcOf(url) || SVC[0];
+      if (st.runGame) { ask("Gerade läuft " + (st.runGame.name || "ein Spiel") + ".", sv.n + " trotzdem auf dem Hauptmonitor öffnen?", "Öffnen", function () { open2(url, resume, sv, from); }); return; }
+      open2(url, resume, sv, from);
+    }
+    function open2(url, resume, sv, from) {
       try { if (st.media && st.media.playing && !/webview|kino/i.test(String(st.media.app || ""))) send({ type: "media", cmd: "toggle" }); } catch (x) {}   // Musik pausiert beim Start
-      S.svc = s || svcOf(url); S.m = {}; S.fps = 0; S.fpsAt = 0; S.open = true; S.tmr = "off";
-      intro(from, S.svc || SVC[0], function () { send({ type: "kino", op: "open", url: url, resume: Math.max(0, +resume || 0) }); });
+      S.svc = sv; S.m = {}; S.open = true; S.tmr = "off";
+      send({ type: "kino", op: "open", url: url, resume: Math.max(0, +resume || 0), name: sv.n, color: sv.c, icon: sv.i, logo: sv.L || "" });   // Hauptmonitor startet sofort mit seiner Animation
+      intro(from, sv, function () {});
+    }
+    // deckos-203: Bildschirm fuer Streams – Liste ohne den Deck-Bildschirm, Nummern wie in Windows
+    function monList() { var act = String(st.monActive || "").toUpperCase(); return (st.monitors || []).filter(function (x) { return String(x.dev).toUpperCase() !== act; }).map(function (x) { return { dev: x.dev, w: x.w, h: x.h, x: +x.x || 0, y: +x.y || 0, primary: !!x.primary, n: (String(x.dev).match(/(\d+)$/) || ["", "?"])[1] }; }); }
+    function askMon(force) {
+      var all = st.monitors || [], ml = monList(); if (!all.length) return;
+      try { if (!force && localStorage.getItem("gsKinoMonAsked") === "1") return; } catch (x) {}
+      if (!force && ml.length < 2) { try { localStorage.setItem("gsKinoMonAsked", "1"); } catch (x) {} return; }   // nur ein Bildschirm neben dem Deck: nichts zu fragen
+      if (document.querySelector(".kv-ask")) return;
+      var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity; all.forEach(function (m) { minX = Math.min(minX, +m.x || 0); minY = Math.min(minY, +m.y || 0); maxX = Math.max(maxX, (+m.x || 0) + m.w); maxY = Math.max(maxY, (+m.y || 0) + m.h); });
+      var W = 900, H = 300, sc = Math.min(W / (maxX - minX), H / (maxY - minY)), act = String(st.monActive || "").toUpperCase(), cur = String(st.kinoMon || "").toUpperCase();
+      var map = '<div class="kv-mmap" style="width:' + Math.round((maxX - minX) * sc) + "px;height:" + Math.round((maxY - minY) * sc) + 'px">' + all.map(function (m) {
+        var deck = String(m.dev).toUpperCase() === act, n = (String(m.dev).match(/(\d+)$/) || ["", "?"])[1], on = cur ? String(m.dev).toUpperCase() === cur : (!!m.primary && !deck);
+        return '<button type="button" class="kv-mon' + (deck ? " deck" : "") + (on ? " on" : "") + '"' + (deck ? " disabled" : ' data-kmon="' + esc(m.dev) + '"') + ' style="left:' + Math.round(((+m.x || 0) - minX) * sc + 4) + "px;top:" + Math.round(((+m.y || 0) - minY) * sc + 4) + "px;width:" + Math.round(m.w * sc - 8) + "px;height:" + Math.round(m.h * sc - 8) + 'px"><b>' + n + "</b><span>" + (deck ? "Deck" : m.w + "×" + m.h + (m.primary ? " · Haupt" : "")) + "</span></button>"; }).join("") + "</div>";
+      var o = document.createElement("div"); o.className = "kv-ask";
+      o.innerHTML = '<div class="kv-askb" style="min-width:980px"><b>Auf welchem Bildschirm sollen Streams laufen?</b><span>Netflix, Prime Video und Crunchyroll öffnen dort im Vollbild. Später änderbar unter Einstellungen › Gaming & Discord.</span>' + map + '<div><button type="button" data-ka="no">Später</button></div></div>';
+      document.body.appendChild(o);
+      if (!rmo() && o.animate) { o.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220 }); o.firstChild.animate([{ transform: "translateY(16px) scale(.96)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 380, easing: "cubic-bezier(.2,1,.3,1)" }); }
+      o.addEventListener("click", function (ev) {
+        ev.stopPropagation(); var b = ev.target.closest("[data-kmon],[data-ka]"); if (!b && ev.target !== o) return;
+        try { localStorage.setItem("gsKinoMonAsked", "1"); } catch (x) {}
+        if (b && b.hasAttribute("data-kmon")) { var d = b.getAttribute("data-kmon"); st.kinoMon = d; send({ type: "set", key: "kinoMon", value: d }); b.classList.add("on"); setTimeout(function () { o.remove(); }, 260); return; }
+        o.remove();
+      }, true);
+    }
+    // Nachfrage im Deck-Stil (z. B. Spiel laeuft)
+    function ask(t1, t2, ok, yes) {
+      var o = document.createElement("div"); o.className = "kv-ask";
+      o.innerHTML = '<div class="kv-askb"><b>' + e(t1) + '</b><span>' + e(t2) + '</span><div><button type="button" data-ka="no">Abbrechen</button><button type="button" data-ka="yes" class="kv-rp">' + e(ok) + "</button></div></div>";
+      document.body.appendChild(o);
+      if (!rmo() && o.animate) { o.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220 }); o.firstChild.animate([{ transform: "translateY(16px) scale(.96)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 380, easing: "cubic-bezier(.2,1,.3,1)" }); }
+      o.addEventListener("click", function (ev) { ev.stopPropagation(); var b = ev.target.closest("[data-ka]"); if (!b && ev.target !== o) return; o.remove(); if (b && b.getAttribute("data-ka") === "yes") yes(); }, true);
     }
     // Start-Animation wie beim Spielstart: Kachel rastet ein (Glanz, Ringe, Funken), dann waechst der Player aus der Kachel in die Mitte
     function gOf(sv) { return { name: sv.n, c: [sv.c, "#0b0c10"], ico: sv.i, logo: "", cover: "", hero: "" }; }
-    function place(go) {   // Kino-Ansicht erscheint, Panels gleiten herein, dann kommt das Player-Fenster
-      show(); var k = S.el;
+    // Tuer-Effekt: Lichtnaht in der Mitte teilt sich, zwei Lichtkanten laufen mit den Raendern der Kachel nach aussen (oder zurueck)
+    function doorFx(k, P, open) {
+      var c = S.svc ? S.svc.c : "#4C8DFF", W = k.clientWidth, pr = P.getBoundingClientRect(), kr = k.getBoundingClientRect();
+      var top = pr.top - kr.top, h = pr.height, cx = pr.left - kr.left + pr.width / 2, half = pr.width / 2;
+      var mk = function () { var e = document.createElement("i"); e.style.cssText = "position:absolute;left:" + (cx - 2) + "px;top:" + top + "px;height:" + h + "px;width:4px;border-radius:2px;opacity:0;background:" + c + ";box-shadow:0 0 34px 8px " + c + ";pointer-events:none;z-index:3;will-change:transform,opacity"; k.appendChild(e); return e; };
+      var seam = mk(), eL = mk(), eR = mk(), EZ = "cubic-bezier(.65,0,.25,1)", T = 950;
+      var clean = function () { [seam, eL, eR].forEach(function (e) { e.remove(); }); };
+      if (open) {
+        seam.animate([{ opacity: 0, transform: "scaleY(0)" }, { opacity: 1, transform: "scaleY(1)" }], { duration: 360, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
+        seam.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, delay: 380, fill: "forwards", composite: "replace" });
+        [[eL, -1], [eR, 1]].forEach(function (x) { x[0].animate([{ opacity: 1, transform: "translateX(0)" }, { opacity: 1, transform: "translateX(" + (x[1] * (half - 2)) + "px)", offset: .85 }, { opacity: 0, transform: "translateX(" + (x[1] * (half - 2)) + "px)" }], { duration: T + 250, delay: 360, easing: EZ, fill: "both" }); });
+        P.animate([{ clipPath: "inset(0 50% 0 50% round 28px)" }, { clipPath: "inset(0 0 0 0 round 28px)" }], { duration: T, delay: 360, easing: EZ, fill: "backwards" });
+        setTimeout(clean, 360 + T + 300);
+        return 360 + T;
+      }
+      [[eL, -1], [eR, 1]].forEach(function (x) { x[0].animate([{ opacity: 0, transform: "translateX(" + (x[1] * (half - 2)) + "px)" }, { opacity: 1, transform: "translateX(" + (x[1] * (half - 2)) + "px)", offset: .12 }, { opacity: 1, transform: "translateX(0)" }], { duration: T, easing: EZ, fill: "both" }); });
+      P.animate([{ clipPath: "inset(0 0 0 0 round 28px)" }, { clipPath: "inset(0 50% 0 50% round 28px)" }], { duration: T, easing: EZ, fill: "forwards" });
+      seam.animate([{ opacity: 0, transform: "scaleY(1)" }, { opacity: 1, transform: "scaleY(1)", offset: .2 }, { opacity: 0, transform: "scaleY(0)" }], { duration: 520, delay: T - 60, easing: "cubic-bezier(.5,0,.8,.4)", fill: "both" });
+      setTimeout(function () { eL.remove(); eR.remove(); }, T + 40);
+      setTimeout(clean, T + 520);
+      return T + 460;
+    }
+    function place(go) {   // Kino-Ansicht: Lichtnaht in der Mitte teilt sich, die Kachel oeffnet sich mit den Lichtkanten nach aussen
+      show(); var k = S.el, P = k.querySelector(".kn-one");
       if (!rmo() && k.animate) {
-        k.animate([{ backgroundColor: "rgba(11,12,16,0)" }, { backgroundColor: "rgba(11,12,16,1)" }], { duration: 700, easing: "ease-out" });
-        [k.querySelector(".kn-clk")].concat([].slice.call(k.querySelectorAll(".kn-amb"))).forEach(function (x) { if (x) x.animate([{ opacity: 0 }, { opacity: getComputedStyle(x).opacity }], { duration: 1200, easing: "ease-out" }); });
-        k.querySelectorAll(".kn-pn").forEach(function (p, i) {
-          p.animate([{ transform: "translateX(" + (i ? 160 : -160) + "px) scale(.94)", opacity: 0, filter: "blur(14px)" }, { transform: "translateX(" + (i ? 12 : -12) + "px) scale(.995)", opacity: 1, filter: "blur(0)", offset: .7 }, { transform: "none", opacity: 1, filter: "blur(0)" }], { duration: 1250, delay: 120 + i * 110, easing: "cubic-bezier(.16,1,.3,1)", fill: "backwards" });
-          [].slice.call(p.children).forEach(function (c, j) { c.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 600, delay: 520 + i * 110 + j * 70, easing: "ease-out", fill: "backwards" }); });
-        });
-        setTimeout(go, 900);   // Player-Fenster erst, wenn Karte und Panels stehen
-      } else setTimeout(go, 0);
+        k.animate([{ backgroundColor: "rgba(11,12,16,0)" }, { backgroundColor: "rgba(11,12,16,1)" }], { duration: 500, easing: "ease-out" });
+        [k.querySelector(".kn-clk"), k.querySelector(".kn-amb")].forEach(function (x) { if (x) x.animate([{ opacity: 0 }, { opacity: getComputedStyle(x).opacity }], { duration: 1400, delay: 400, easing: "ease-out", fill: "backwards" }); });
+        var t = doorFx(k, P, true);
+        k.querySelectorAll(".kn-top, .kn-info, .kn-ctl, .kn-prog, .kn-vc").forEach(function (c, j) { c.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 560, delay: t - 380 + j * 70, easing: "cubic-bezier(.2,1,.3,1)", fill: "backwards" }); });
+      }
+      go();
     }
     function intro(from, sv, go) {
-      if (from && !rmo()) { try { if (NX.kinoStart(gOf(sv), from, function () { place(go); })) return; } catch (x) {} }
-      if (!from || rmo() || !document.body.animate) { show(); go(); return; }
-      var col = sv.c, r = from.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      from.animate([{ transform: "none", filter: "brightness(1)" }, { transform: "scale(.94)", offset: 0.14 }, { transform: "translateY(-6px) scale(1.05)", filter: "brightness(1.35) saturate(1.2)", boxShadow: "0 0 0 3px #fff, 0 0 90px " + col, offset: 0.45 }, { transform: "none", filter: "brightness(1)" }], { duration: 900, easing: "cubic-bezier(.2,.8,.2,1)" });
-      var fx = document.createElement("div"); fx.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:9100;overflow:hidden"; document.body.appendChild(fx);
-      var sw = document.createElement("i"); sw.style.cssText = "position:absolute;left:" + r.left + "px;top:" + r.top + "px;width:" + r.width + "px;height:" + r.height + "px;border-radius:24px;overflow:hidden"; fx.appendChild(sw);
-      var sb = document.createElement("i"); sb.style.cssText = "position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%)"; sw.appendChild(sb);
-      sb.animate([{ transform: "translateX(-130%)" }, { transform: "translateX(130%)" }], { duration: 700, easing: "cubic-bezier(.4,0,.2,1)" });
-      [0, 160, 340].forEach(function (d, i) { var dm = Math.max(r.width, r.height) * 0.7, q = document.createElement("i"); q.style.cssText = "position:absolute;left:" + (cx - dm / 2) + "px;top:" + (cy - dm / 2) + "px;width:" + dm + "px;height:" + dm + "px;border-radius:50%;border:" + (3 - i) + "px solid " + col + ";box-shadow:0 0 30px " + col; fx.appendChild(q);
-        q.animate([{ transform: "scale(.6)", opacity: 0 }, { transform: "scale(.8)", opacity: .9, offset: .12 }, { transform: "scale(" + (2.4 + i * .7) + ")", opacity: 0 }], { duration: 1100, delay: 200 + d, easing: "cubic-bezier(.15,.7,.3,1)", fill: "backwards" }); });
-      for (var n = 0; n < 22; n++) { var a = Math.random() * Math.PI * 2, dist = 120 + Math.random() * 260, sz = 3 + Math.random() * 5, pt = document.createElement("i"); pt.style.cssText = "position:absolute;left:" + (cx - sz / 2) + "px;top:" + (cy - sz / 2) + "px;width:" + sz + "px;height:" + sz + "px;border-radius:50%;background:" + (n % 3 ? col : "#fff") + ";box-shadow:0 0 8px " + col; fx.appendChild(pt);
-        pt.animate([{ transform: "translate(0,0)", opacity: 0 }, { opacity: 1, offset: .1 }, { transform: "translate(" + (Math.cos(a) * dist).toFixed(0) + "px," + (Math.sin(a) * dist).toFixed(0) + "px) scale(.2)", opacity: 0 }], { duration: 1000 + Math.random() * 500, delay: 250, easing: "cubic-bezier(.1,.6,.3,1)", fill: "backwards" }); }
-      setTimeout(function () {
-        show(); var k = S.el, W = window.innerWidth, H = window.innerHeight, vw = Math.min(W, Math.round(H * 16 / 9)), vx = Math.floor((W - vw) / 2);
-        k.animate([{ backgroundColor: "rgba(11,12,16,0)" }, { backgroundColor: "rgba(11,12,16,1)" }], { duration: 380, easing: "ease-out" });
-        var pf = document.createElement("div"); pf.style.cssText = "position:fixed;z-index:9050;pointer-events:none;border-radius:24px;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 45%," + col + " 0%,#0b0c10 75%);left:" + vx + "px;top:0;width:" + vw + "px;height:" + H + "px;box-shadow:0 0 120px " + col;
-        pf.innerHTML = '<span style="width:120px;height:120px;border-radius:30px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)">' + ico(sv).replace('class="kv-sv"', 'class="kv-sv" style="position:absolute;inset:0;width:100%;height:100%;font-size:54px;border-radius:30px;background:' + col + '"').replace(/style="background:[^"]*"/, "") + "</span>";
-        document.body.appendChild(pf);
-        var sx = r.width / vw, sy = r.height / H, tx = (cx - (vx + vw / 2)), ty = (cy - H / 2);
-        pf.animate([{ transform: "translate(" + tx + "px," + ty + "px) scale(" + sx + "," + sy + ")", borderRadius: "60px", opacity: .6 }, { transform: "none", borderRadius: "0px", opacity: 1 }], { duration: 560, easing: "cubic-bezier(.2,.9,.25,1)", fill: "forwards" });
-        var lg = pf.firstChild; lg.animate([{ transform: "scale(.4)", opacity: 0 }, { transform: "scale(1.12)", opacity: 1, offset: .6 }, { transform: "scale(1)", opacity: 1 }], { duration: 700, delay: 160, easing: "cubic-bezier(.2,1.3,.4,1)", fill: "backwards" });
-        k.querySelectorAll(".kn-pn").forEach(function (p, i) { p.animate([{ transform: "translateX(" + (i ? 90 : -90) + "px) scale(.96)", opacity: 0, filter: "blur(10px)" }, { transform: "none", opacity: 1, filter: "blur(0)" }], { duration: 620, delay: 240 + i * 60, easing: "cubic-bezier(.2,1,.3,1)", fill: "backwards" }); });
-        setTimeout(go, 720);   // Player-Fenster erscheint, wenn der Rahmen steht
-        setTimeout(function () { pf.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: "forwards" }).onfinish = function () { pf.remove(); }; }, 1700);
-      }, 420);
-      setTimeout(function () { fx.remove(); }, 2200);
+      place(go);   // deckos-203: keine Karte mehr – auf dem Deck klappen nur die Panels auf, die große Animation läuft auf dem Hauptmonitor
     }
     function build() {
       var k = document.createElement("div"); k.id = "kino"; k.setAttribute("role", "dialog"); k.setAttribute("aria-label", "Kino");
       var SVG = '<svg viewBox="0 0 24 24" aria-hidden="true">';
-      k.innerHTML = '<div class="kn-amb"></div><div class="kn-amb kn-amb2"></div><div class="kn-vid">Player wird geladen …</div><div class="kn-clk"></div>' +
-        '<div class="kn-pn kn-l"><div class="kn-svc"></div><div class="kn-ti"></div><div class="kn-sub"></div>' +
-        '<div class="kn-low"><div class="kn-prog"><div class="kn-bar" data-kn="bar"><i></i></div><div class="kn-tm"><span class="kn-t0">0:00</span><span class="kn-t1">0:00</span></div></div>' +
-        '<div class="kn-ctl"><button type="button" class="kn-b" data-kn="back" aria-label="10 Sekunden zurück">' + SVG + '<path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4"/></svg></button><button type="button" class="kn-b kn-pp" data-kn="toggle" aria-label="Wiedergabe"></button><button type="button" class="kn-b" data-kn="fwd" aria-label="10 Sekunden vor">' + SVG + '<path d="M20 12a8 8 0 1 1-3-6.2M20 4v4h-4"/></svg></button></div></div></div>' +
-        '<div class="kn-pn kn-r"><div class="kn-vc"><div class="kv-lab">Lautstärke</div><div class="kn-vp">–</div><div class="kn-vol" data-kn="vol"><i></i><b></b></div><button type="button" class="kn-mute" data-kn="mute" aria-label="Stumm">' + SVG + '<path d="M4 9v6h4l5 4V5L8 9zM16.5 9a4 4 0 0 1 0 6"/></svg></button></div>' +
-        '<div class="kn-nav"><button type="button" class="kn-p" data-kn="home">' + SVG + '<path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/></svg>Übersicht</button><button type="button" class="kn-p" data-kn="deck">' + SVG + '<path d="M15 18l-6-6 6-6"/></svg>Zurück zum Deck</button>' +
-        '<div class="kv-lab" style="margin-top:14px">Schlummer-Timer</div><button type="button" class="kn-p" data-kntmr="off">Aus</button><button type="button" class="kn-p" data-kntmr="30">30 Minuten</button><button type="button" class="kn-p" data-kntmr="60">60 Minuten</button><button type="button" class="kn-p" data-kntmr="ep">Nach dieser Folge</button><div class="kn-tmrs"></div>' +
-        '<button type="button" class="kn-p kn-end" data-kn="close">' + SVG + '<path d="M6 6l12 12M18 6L6 18"/></svg>Beenden</button></div></div>';
+      var IB = function (kn, lab, path, cls) { return '<button type="button" class="kn-ib' + (cls ? " " + cls : "") + '" data-kn="' + kn + '" aria-label="' + lab + '" title="' + lab + '">' + SVG + path + "</svg></button>"; };
+      k.innerHTML = '<div class="kn-amb"></div><div class="kn-clk"></div>' +
+        '<div class="kn-pn kn-one"><div class="kn-main">' +
+          '<div class="kn-top"><div class="kn-svc"></div><span style="flex:1"></span>' +
+            '<button type="button" class="kn-ib kn-tmb" data-kn="tmr" aria-label="Schlummer-Timer" title="Schlummer-Timer">' + SVG + '<path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg><span class="kn-tmrs"></span></button>' +
+            IB("home", "Übersicht", '<path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/>') + IB("deck", "Zurück zum Deck", '<path d="M15 18l-6-6 6-6"/>') + IB("close", "Beenden", '<path d="M6 6l12 12M18 6L6 18"/>', "kn-end") + '</div>' +
+          '<div class="kn-mid"><div class="kn-info"><div class="kn-ti"></div><div class="kn-sub"></div></div>' +
+            '<div class="kn-ctl"><button type="button" class="kn-b" data-kn="back" aria-label="10 Sekunden zurück">' + SVG + '<path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4"/></svg></button><button type="button" class="kn-b kn-pp" data-kn="toggle" aria-label="Wiedergabe"></button><button type="button" class="kn-b" data-kn="fwd" aria-label="10 Sekunden vor">' + SVG + '<path d="M20 12a8 8 0 1 1-3-6.2M20 4v4h-4"/></svg></button></div><span></span></div>' +
+          '<div class="kn-prog"><div class="kn-bar" data-kn="bar"><i></i><b></b></div><div class="kn-tm"><span class="kn-t0">0:00</span><span class="kn-t1">0:00</span></div></div>' +
+        '</div>' +
+        '<div class="kn-vc"><div class="kv-lab">Lautstärke</div><div class="kn-vp">–</div><div class="kn-vol" data-kn="vol"><i></i><b></b></div><button type="button" class="kn-mute" data-kn="mute" aria-label="Stumm">' + SVG + '<path d="M4 9v6h4l5 4V5L8 9zM16.5 9a4 4 0 0 1 0 6"/></svg></button></div></div>';
       document.body.appendChild(k); S.el = k;
       k.addEventListener("click", tap);
       S.actAt = Date.now();
@@ -1876,12 +1921,8 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
       window.addEventListener("resize", lay);
     }
     function lay() {
-      var k = S.el; if (!k) return; var W = window.innerWidth, H = window.innerHeight, port = H >= W;
-      var vw = port ? W : Math.min(W, Math.round(H * 16 / 9)), vh = port ? Math.round(W * 9 / 16) : H, vx = port ? 0 : Math.floor((W - vw) / 2);
-      var v = k.querySelector(".kn-vid"); v.style.left = vx + "px"; v.style.width = vw + "px"; v.style.height = vh + "px";
-      var L = k.querySelector(".kn-l"), R = k.querySelector(".kn-r"), sw = vx - 32;
-      if (port || sw < 320) { var hw = Math.floor((W - 48) / 2); L.style.cssText = "left:16px;width:" + hw + "px;top:" + (vh + 16) + "px;bottom:16px"; R.style.cssText = "left:" + (32 + hw) + "px;width:" + hw + "px;top:" + (vh + 16) + "px;bottom:16px"; }
-      else { L.style.cssText = "left:16px;width:" + sw + "px;top:70px;bottom:16px"; R.style.cssText = "left:" + (vx + vw + 16) + "px;width:" + sw + "px;top:70px;bottom:16px"; }   // oben Platz fuer die Uhr wie im Deck
+      var k = S.el; if (!k) return; var P = k.querySelector(".kn-one");
+      P.style.cssText = "left:16px;right:16px;top:70px;bottom:16px"; k.classList.toggle("kn-narrow", window.innerWidth < 1700);
       var c = S.svc ? S.svc.c : "#4C8DFF"; k.querySelectorAll(".kn-amb").forEach(function (a) { a.style.background = c; });
     }
     function show() {
@@ -1894,45 +1935,46 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
       ev.stopPropagation();
       var a = t.getAttribute("data-kn"), m = S.m;
       if (t.hasAttribute("data-kntmr")) { S.tmr = t.getAttribute("data-kntmr"); S.tmrAt = Date.now(); paint(); return; }
+      if (a === "tmr") { var seq = ["off", "30", "60", "ep"]; S.tmr = seq[(seq.indexOf(S.tmr) + 1) % seq.length]; S.tmrAt = Date.now(); paint(); return; }
       if (a === "toggle") { send({ type: "kino", op: "cmd", c: "toggle" }); m.paused = !m.paused; paint(); }
       else if (a === "mute") { var nv = KV > 0 ? 0 : (S.preMute || 0.5); if (KV > 0) S.preMute = KV; kvSet(nv); send({ type: "kino", op: "cmd", c: "vol", a: nv }); paint(); }
       else if (a === "back") send({ type: "kino", op: "cmd", c: "seek", a: -10 });
       else if (a === "fwd") send({ type: "kino", op: "cmd", c: "seek", a: 10 });
       else if (a === "bar") { if (!(m.dur > 0)) return; var r = t.getBoundingClientRect(), f = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)); send({ type: "kino", op: "cmd", c: "seekto", a: Math.round(f * m.dur) }); m.pos = f * m.dur; paint(); }
       else if (a === "home") { if (S.svc) send({ type: "kino", op: "open", url: S.svc.u, resume: 0 }); }
-      else if (a === "deck") { leave(function () { send({ type: "kino", op: "hide" }); }, null); }
-      else if (a === "close") { var cs = S.svc || SVC[0]; leave(function () { send({ type: "kino", op: "close" }); }, function () { var te = S.c && S.c.querySelector('[data-kvopen="' + cs.k + '"]'); try { NX.kinoEnd(gOf(cs), te); } catch (x) {} }); }
+      else if (a === "deck") { leave(function () {}, null); }   // Video laeuft auf dem Hauptmonitor weiter
+      else if (a === "close") { var cs = S.svc || SVC[0]; leave(function () { send({ type: "kino", op: "close" }); }, null); }
     }
     // Rueckweg: erst klappen die Seitenpanels weg, dann verschwindet der Player, zuletzt (Beenden) klappt er zurueck auf die Kachel
-    function leave(before, after) {
+    function leave(before, after) {   // Rueckweg: Inhalte weg, Kachel schliesst sich mit den Lichtkanten zur Mitte, Naht verlischt
       var k = S.el; if (S.leaving) return; S.leaving = true;
-      var fin = function () { S.leaving = false; before(); hide(); k.getAnimations({ subtree: true }).forEach(function (x) { x.cancel(); }); toMedia(); if (after) setTimeout(after, 120); };
+      var fin = function () { S.leaving = false; before(); hide(); k.getAnimations({ subtree: true }).forEach(function (x) { x.cancel(); }); [].slice.call(k.querySelectorAll(":scope > i")).forEach(function (x) { x.remove(); }); toMedia(); if (after) setTimeout(after, 60); };
       if (rmo() || !k || !k.animate) { fin(); return; }
-      k.classList.remove("dim");
-      k.querySelectorAll(".kn-pn").forEach(function (p, i) {
-        [].slice.call(p.children).reverse().forEach(function (c, j) { c.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(8px)" }], { duration: 260, delay: j * 40, easing: "ease-in", fill: "forwards" }); });
-        p.animate([{ transform: "none", opacity: 1, filter: "blur(0)" }, { transform: "translateX(" + (i ? -10 : 10) + "px) scale(.995)", opacity: 1, filter: "blur(0)", offset: .25 }, { transform: "translateX(" + (i ? 170 : -170) + "px) scale(.94)", opacity: 0, filter: "blur(14px)" }], { duration: 760, delay: 140 + (1 - i) * 90, easing: "cubic-bezier(.55,0,.75,.2)", fill: "forwards" });
-      });
-      [k.querySelector(".kn-clk")].concat([].slice.call(k.querySelectorAll(".kn-amb"))).forEach(function (x) { if (x) x.animate([{ opacity: getComputedStyle(x).opacity }, { opacity: 0 }], { duration: 600, delay: 200, fill: "forwards" }); });
-      setTimeout(function () { k.animate([{ backgroundColor: "rgba(11,12,16,1)" }, { backgroundColor: "rgba(11,12,16,0)" }], { duration: 420, easing: "ease-in", fill: "forwards" }); }, 700);
-      setTimeout(fin, 1000);
+      k.classList.remove("dim"); var P = k.querySelector(".kn-one");
+      [].slice.call(k.querySelectorAll(".kn-top, .kn-info, .kn-ctl, .kn-prog, .kn-vc")).reverse().forEach(function (c, j) { c.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(8px)" }], { duration: 260, delay: j * 40, easing: "ease-in", fill: "forwards" }); });
+      setTimeout(function () {
+        var t = doorFx(k, P, false);
+        [k.querySelector(".kn-clk"), k.querySelector(".kn-amb")].forEach(function (x) { if (x) x.animate([{ opacity: getComputedStyle(x).opacity }, { opacity: 0 }], { duration: 700, fill: "forwards" }); });
+        setTimeout(function () { k.animate([{ backgroundColor: "rgba(11,12,16,1)" }, { backgroundColor: "rgba(11,12,16,0)" }], { duration: 380, easing: "ease-in", fill: "forwards" }); }, t - 300);
+        setTimeout(fin, t + 100);
+      }, 320);
     }
-    function toMedia() { S.seg = "video"; try { osGo(PI("media")); } catch (x) {} setTimeout(draw, 50); }
+    function toMedia() { try { osGo(S.back != null ? S.back : PI("macros")); } catch (x) {} setTimeout(draw, 50); }   // zurueck, wo das Kino gestartet wurde
     function qual(h) { return h >= 2000 ? ["4K", "#62D69A"] : h >= 1400 ? ["QHD", "#62D69A"] : h >= 1000 ? ["Full HD", "#62D69A"] : h >= 700 ? ["HD", "#E0B44A"] : h > 0 ? ["SD", "#E06A5A"] : ["", "#8E8E99"]; }
     function paint() {
       var k = S.el; if (!k || !S.vis) return; var m = S.m, s = S.svc || svcOf(m.url) || SVC[0];
       k.querySelector(".kn-svc").innerHTML = ico(s) + '<span class="kv-lab">' + e(s.n) + "</span>";
       var w = m.watch !== false && m.v, ti = m.series || cleanT(m.title, s);
       k.querySelector(".kn-ti").textContent = w ? (ti || s.n) : "Titel auswählen";
-      k.querySelector(".kn-sub").textContent = w ? (m.ep || m.sub || "") : "Im Player links eine Serie oder einen Film starten.";
+      k.querySelector(".kn-sub").textContent = w ? (m.ep || m.sub || "") : "Auf dem Hauptmonitor eine Serie oder einen Film starten.";
       var ok = w && m.dur > 0, f = ok ? Math.max(0, Math.min(1, m.pos / m.dur)) : 0;
       k.querySelector(".kn-bar i").style.width = (f * 100) + "%"; k.querySelector(".kn-prog").style.visibility = ok ? "" : "hidden";
-      k.querySelector(".kn-t0").textContent = ok ? ft(m.pos) : ""; k.querySelector(".kn-t1").textContent = ok ? "−" + ft(m.dur - m.pos) : "";
+      k.querySelector(".kn-t0").textContent = ok ? ft(m.pos) : ""; k.querySelector(".kn-t1").textContent = ok ? "noch " + ft(m.dur - m.pos) + " · endet " + (function (d) { return d.getHours() + ":" + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes(); })(new Date(Date.now() + (m.dur - m.pos) * 1000)) : ""; k.querySelector(".kn-bar b").style.left = (f * 100) + "%";
       k.querySelector(".kn-pp").innerHTML = m.v && !m.paused ? '<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>';
       if (!S.volDrag) { k.querySelector(".kn-vol i").style.height = (KV * 100) + "%"; k.querySelector(".kn-mute").classList.toggle("on", KV === 0); k.querySelector(".kn-vp").textContent = Math.round(KV * 100) + " %"; }
       k.querySelectorAll("[data-kntmr]").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-kntmr") === S.tmr); });
-      var ts = ""; if (S.tmr === "30" || S.tmr === "60") { var left = Math.max(0, +S.tmr * 60000 - (Date.now() - S.tmrAt)); ts = "pausiert in " + Math.ceil(left / 60000) + " Min."; } else if (S.tmr === "ep") ts = "pausiert nach dieser Folge";
-      k.querySelector(".kn-tmrs").textContent = ts;
+      var ts = ""; if (S.tmr === "30" || S.tmr === "60") { var left = Math.max(0, +S.tmr * 60000 - (Date.now() - S.tmrAt)); ts = Math.ceil(left / 60000) + " Min."; } else if (S.tmr === "ep") ts = "nach Folge";
+      k.querySelector(".kn-tmrs").textContent = ts; k.querySelector(".kn-tmb").classList.toggle("on", !!ts);
     }
     function data(m) {
       if (m.open === false) { S.open = false; hide(); draw(); return; }
@@ -1949,9 +1991,14 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
       // Schlummer-Timer
       if ((S.tmr === "30" || S.tmr === "60") && now - S.tmrAt >= +S.tmr * 60000 && m.v && !m.paused) { send({ type: "kino", op: "cmd", c: "pause" }); S.tmr = "off"; }
       if (S.tmr === "ep" && m.v && (m.ended || (m.dur > 180 && m.pos >= m.dur - 2))) { send({ type: "kino", op: "cmd", c: "pause" }); S.tmr = "off"; }
-      paint();
+      if (S.vis) paint(); else draw();
     }
-    return { mount: mount, data: data, draw: draw, busy: function () { return S.vis; } };
+    return { mount: mount, data: data, draw: draw, busy: function () { return S.vis; },
+      icon: function (k) { return svcK(k).i; },
+      isOpen: function () { return !!S.open; },
+      monList: monList, askMon: askMon,
+      panel: function (el) { if (!S.open || S.vis) return; S.back = st.osPage; if (el && el.animate && !rmo()) el.animate([{ scale: "1" }, { scale: ".96", offset: .3 }, { scale: "1" }], { duration: 300, easing: "ease-out" }); intro(el, S.svc || SVC[0], function () {}); },
+      start: function (k, el) { var sv = svcK(k); S.back = st.osPage; open(sv.u, 0, sv, el); } };
   })();
   window.onerror = function (m, src, line) { send({ type: "log", msg: "JS: " + m + " @" + line }); };
 
@@ -2140,6 +2187,8 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
       ["#", "Spielstart"],
       ["launchSt", "Animation", "", [["wave", "Klassisch"], ["stage", "Vollbild"], ["lid", "Lidschlag"], ["tile", "Kachel"]]],   /* deckos-194 */
       ["endAnim", "Spielende animieren", "", SW, "Beim Beenden kehrt die große Kachel als Cover ins Regal zurück, dazu kurz die Sitzungsdauer."],   /* deckos-195 */
+      ["#", "Streaming"],
+      ["kinoMon", "Bildschirm für Streams", "", null],
       ["#", "Discord"],
       ["discordSplit", "Discord-Fenster andocken", "", SW],
       ["dcpos", "Seite", "D", [["a", "Oben"], ["b", "Unten"]]],
@@ -2217,6 +2266,14 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
     if (r[0] === "dcpos") { r[3][0][1] = st.monPortrait ? "Oben" : "Links"; r[3][1][1] = st.monPortrait ? "Unten" : "Rechts"; }
     if (r[0] === "share") lab = st.monPortrait ? "Höhe" : "Breite";
     var o = '<div class="row"><div class="rh"><span>' + lab + "</span>" + (r[2] ? "<kbd>Strg+Alt+" + r[2] + "</kbd>" : "") + "</div>";
+    if (r[0] === "kinoMon") {   // deckos-203: Bildschirm, auf dem Streams laufen
+      var km = KINO.monList(), kc = String(st.kinoMon || "").toUpperCase(), ko = [["", "Hauptbildschirm"]];
+      km.forEach(function (x) { ko.push([x.dev, "Bildschirm " + x.n + " · " + x.w + "×" + x.h + (x.primary ? " · Haupt" : "")]); });
+      if (kc && !km.some(function (x) { return String(x.dev).toUpperCase() === kc; })) ko.push([st.kinoMon, "nicht angeschlossen"]);
+      o = o.replace('class="row"', 'class="row wide"') + '<div class="opts" style="max-width:' + (ko.length * 300) + 'px">';
+      ko.forEach(function (v) { o += '<button type="button" data-set="kinoMon|' + esc(v[0]) + '"' + (String(v[0]).toUpperCase() === kc ? ' class="on"' : "") + ">" + v[1] + "</button>"; });
+      return o + '</div><div class="mhelp" style="margin-top:6px">Auf diesem Bildschirm öffnen Netflix, Prime Video und Crunchyroll im Vollbild. Die Nummern stehen in Windows unter Einstellungen › Anzeige › Identifizieren.</div>';
+    }
     if (r[0] === "monitor") {   // Bildschirmwahl (deckos-179): Liste kommt vom Host mit der Layout-Nachricht
       var ms = st.monitors || [], cur = String(st.monitor || "").toUpperCase(), act = String(st.monActive || "").toUpperCase(), actN = "";
       var mo = [["", "Automatisch"]];
@@ -3951,7 +4008,7 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
   }
 
   // ---------- Einstellungen ----------
-  var PERSIST = { monitor: 1, modHue: 1, idleOn: 1, idleMin: 1, idleGlow: 1, idleLab: 1, form: 1, style: 1, dtheme: 1, dcpos: 1, share: 1, mode: 1, discordSplit: 1, autostart: 1, modMusic: 1, modVoice: 1, modMixer: 1, modStats: 1, fsVol: 1, fsPad: 1, fsBat: 1, fsWa: 1, fsCl: 1, photoOn: 1, fsAch: 1, fsOk: 1, fsFr: 1, fsHeat: 1, fsMus: 1, fsDl: 1, hudArt: 1, touchOnly: 1, ui: 1, flashSel: 1, accentSel: 1, bg: 1, blur: 1, tint: 1, tone: 1, wxName: 1, wxLat: 1, wxLon: 1, clockStyle: 1, agendaMode: 1 };
+  var PERSIST = { kinoMon: 1, monitor: 1, modHue: 1, idleOn: 1, idleMin: 1, idleGlow: 1, idleLab: 1, form: 1, style: 1, dtheme: 1, dcpos: 1, share: 1, mode: 1, discordSplit: 1, autostart: 1, modMusic: 1, modVoice: 1, modMixer: 1, modStats: 1, fsVol: 1, fsPad: 1, fsBat: 1, fsWa: 1, fsCl: 1, photoOn: 1, fsAch: 1, fsOk: 1, fsFr: 1, fsHeat: 1, fsMus: 1, fsDl: 1, hudArt: 1, touchOnly: 1, ui: 1, flashSel: 1, accentSel: 1, bg: 1, blur: 1, tint: 1, tone: 1, wxName: 1, wxLat: 1, wxLon: 1, clockStyle: 1, agendaMode: 1 };
   function setOpt(k, v) {
     if (k === "share" || k === "idleMin") v = +v;
     if (v === "true") v = true; else if (v === "false") v = false;
@@ -4056,8 +4113,9 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
         send({ type: "media", cmd: "seek:" + sec }); sm.pos = sec; sm.posAt = Date.now(); NX.update(); }
       return;
     }
-    var ccm = e.target.closest("[data-ccmed]"); if (ccm) { ccClose(function () { osGo(PI("media")); }); return; }   // Kontrollzentrum: „Jetzt läuft“ → Medien-Tab (deckos-186)
-    var mfr = e.target.closest("[data-mfront]"); if (mfr) { if ((st.media || {}).title) { send({ type: "mediafront" }); if (!noMotion()) mfr.animate([{ scale: "1" }, { scale: ".96", offset: .3 }, { scale: "1" }], { duration: 380, easing: "ease-out" }); } return; }   // Cover: App nach vorn (deckos-186)
+    var ccm = e.target.closest("[data-ccmed]"); if (ccm) { ccClose(function () { if (KINO.isOpen()) KINO.panel(null); else osGo(PI("media")); }); return; }   // deckos-203: Stream -> Kino-Steuerung, Musik -> Medien-Tab   // Kontrollzentrum: „Jetzt läuft“ → Medien-Tab (deckos-186)
+    var mfr = e.target.closest("[data-mfront]"); if (mfr && KINO.isOpen()) { KINO.panel(mfr); return; }   // deckos-203: Stream laeuft -> Tipp aufs Bild oeffnet die Kino-Steuerung
+    if (mfr) { if ((st.media || {}).title) { send({ type: "mediafront" }); if (!noMotion()) mfr.animate([{ scale: "1" }, { scale: ".96", offset: .3 }, { scale: "1" }], { duration: 380, easing: "ease-out" }); } return; }   // Cover: App nach vorn (deckos-186)
     var mb = e.target.closest("[data-media]"); if (mb) { var mcmd = mb.getAttribute("data-media"); if (mcmd === "next" || mcmd === "prev") { st.medDir = mcmd === "prev" ? -1 : 1; st.medDirAt = Date.now(); } send({ type: "media", cmd: mcmd }); return; }
     var vb = e.target.closest("[data-voice]"); if (vb) { var w = vb.getAttribute("data-voice"); st.voice[w] = !st.voice[w]; send({ type: "voice", which: w }); applyMutes(); voiceToast(w);  return; }
     if (e.target.closest("[data-calnow]")) { calShift(0); return; }
@@ -4520,6 +4578,8 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
       st.dc = m.discord ? "on" : "off"; st.monPortrait = !!m.portrait; if (m.dcpos) st.dcpos = m.dcpos; if (m.share) st.share = +m.share;
       if (m.discordSplit != null) st.discordSplit = !!m.discordSplit; if (m.autostart != null) st.autostart = !!m.autostart;
       if (m.discordUp != null) st.dcUp = !!m.discordUp;
+      if (m.kinoMon != null) st.kinoMon = String(m.kinoMon);
+      if (m.monitors && !st.kinoAskT) st.kinoAskT = setTimeout(function () { try { KINO.askMon(false); } catch (x) {} }, 4000);   // deckos-203: einmalig nach dem Update fragen
       if (m.monitor != null) st.monitor = String(m.monitor); if (m.monActive != null) st.monActive = String(m.monActive); if (m.monitors) st.monitors = [].concat(m.monitors);
       render();
     } else if (m.type === "state") {
@@ -5251,18 +5311,21 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
     var MI = { shot: "M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3", clip: "M4 6h16v12H4zM10 9l5 3-5 3z", rec: "M12 12m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0", huesync: "M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z", wp: "M8 5v14M16 5v14", wpp: "M7 5l12 7-12 7z", notif: "M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0", lock: "M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3", vyt: "M3 7a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3zM10 9l5 3-5 3z", vnexus: "M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 3v18M4 7.5l16 9M20 7.5l-16 9", vamazon: "M6 8h12l-1 12H7zM9 8V6a3 3 0 0 1 6 0v2", vreddit: "M12 14m-7 0a7 4.5 0 1 0 14 0a7 4.5 0 1 0-14 0M9 13.5h.01M15 13.5h.01M9.5 16.5c1.5 1 3.5 1 5 0M14 6l3 .8M12 9.5l1.5-5", vclaude: "M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4", vapple: "M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z", custom: "M12 5v14M5 12h14", vrhi: "M4 5h16v11H4zM8 20h8M12 16v4", vdlss: "M7 7h10v10H7zM4 10h3M4 14h3M17 10h3M17 14h3M10 4v3M14 4v3M10 17v3M14 17v3", vani: "M4 6h16v11H4zM10 9.5l4 2-4 2zM8 20h8", vnord: "M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6zM8 15l4-7 4 7" };
     var MG = [["Aufnehmen", [["clip", "Clip speichern", "NVIDIA", "#76B900"], ["rec", "Aufnahme", "NVIDIA", "#E5484D"], ["shot", "Snipping Tool", "Windows", "#4C8DFF"], ["custom", "Eigene Taste", "", "#5E6AD2"]]],
       ["Apps", [["huesync", "Hue Sync", "App", "#A78BFA"], ["vclaude", "Claude", "App", "#D97757"], ["vrhi", "RHI", "App", "#3FA7D6"], ["vdlss", "DLSS Swapper", "App", "#76B900"], ["vnord", "NordVPN", "VPN", "#4687FF"], ["vapple", "Apple Music", "App", "#FA2D48"]]],
-      ["Web", [["vyt", "YouTube", "Vivaldi", "#FF2E2E"], ["vnexus", "Nexus Mods", "Vivaldi", "#E8762D"], ["vamazon", "Amazon", "Vivaldi", "#FF9900"], ["vreddit", "Reddit", "Vivaldi", "#FF4500"], ["vani", "AniWorld", "Web-App", "#3B82F6"]]]];
+      ["Web", [["vyt", "YouTube", "Vivaldi", "#FF2E2E"], ["vnexus", "Nexus Mods", "Vivaldi", "#E8762D"], ["vamazon", "Amazon", "Vivaldi", "#FF9900"], ["vreddit", "Reddit", "Vivaldi", "#FF4500"]]],
+      ["Streaming", [["kino_netflix", "Netflix", "Hauptmonitor", "#B8202A"], ["kino_crunchy", "Crunchyroll", "Hauptmonitor", "#E2661F"], ["kino_prime", "Prime Video", "Hauptmonitor", "#1F6FD1"]]]];   // deckos-203: Kino startet hier
     var recAt = 0;
     var macros = {
       built: false,
       build: function (c) {
-        var avail = RW - 32 - 32, ws = NW ? [0.3, 0.33, 0.37] : [760 / 2496, 860 / 2496, 876 / 2496], x = 16;
+        var avail = RW - 32 - 16 * MG.length, ws = NW ? [0.22, 0.29, 0.25, 0.24] : [0.22, 0.30, 0.25, 0.23], x = 16;
         MG.forEach(function (gr, gi) {
           var w = Math.round(avail * ws[gi]), p = panel("n-mgrp", x, w); x += w + 16;
           var list = gr[1].filter(function (m) { if (m[0] === "vapple") return String(st.macroExtra || "").split(",").indexOf("vapple") >= 0; return !(gi === 1 && st.appIconsGot && !(st.appIcons || {})[MACRO_APP[m[0]]]); });   // vapple nur, wenn in deck.json macroExtra freigeschaltet (persönliche Kachel)
-          var five = list.length === 5, grid = '<div class="n-mgrid" style="grid-template-columns:' + (five ? "repeat(6,1fr)" : list.length === 6 ? "repeat(3,1fr)" : "1fr 1fr") + ';grid-template-rows:1fr 1fr">';
+          // deckos-203: Kacheln unterschiedlich gross (12er-Raster, zwei Reihen, je Gruppe ein eigenes Muster) – lebendiger, ohne Luecken
+          var SP = { 1: [[12, 2]], 2: [[7, 2], [5, 2]], 3: (gi % 2 ? [[5, 1], [7, 2], [5, 1]] : [[7, 2], [5, 1], [5, 1]]), 4: (gi % 2 ? [[5, 1], [7, 1], [7, 1], [5, 1]] : [[7, 1], [5, 1], [5, 1], [7, 1]]), 5: [[7, 1], [5, 1], [4, 1], [4, 1], [4, 1]], 6: (gi % 2 ? [[3, 1], [4, 1], [5, 1], [5, 1], [4, 1], [3, 1]] : [[5, 1], [4, 1], [3, 1], [3, 1], [4, 1], [5, 1]]) }[Math.min(list.length, 6)] || [];
+          var five = false, grid = '<div class="n-mgrid" style="grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:1fr 1fr;grid-auto-flow:dense">';
           list.forEach(function (m, i) {
-            grid += '<button type="button" class="n-mk" data-macro="' + m[0] + '" style="--c:' + m[3] + (five ? ";grid-column:span " + (i < 3 ? 2 : 3) : "") + '"><div class="n-orb"></div><div class="n-ic" data-ico="' + m[0] + '"><svg viewBox="0 0 24 24"><path d="' + MI[m[0]] + '"/></svg></div>' +
+            grid += '<button type="button" class="n-mk" data-macro="' + m[0] + '" style="--c:' + m[3] + (SP[i] ? ";grid-column:span " + SP[i][0] + ";grid-row:span " + SP[i][1] : "") + (SP[i] && SP[i][1] === 2 ? "" : "") + '"><div class="n-orb"></div><div class="n-ic" data-ico="' + m[0] + '"><svg viewBox="0 0 24 24"><path d="' + MI[m[0]] + '"/></svg></div>' +
               '<div class="n-ok"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="n-rt">00:00</span><b>' + m[1] + "</b><span>" + esc(m[2]) + "</span></button>";
           });
           if (!list.length) grid += '<div style="grid-column:1/-1;grid-row:1/-1;display:grid;place-items:center;text-align:center;opacity:.5;font-size:14px;padding:0 24px">Hier erscheinen Hue Sync, Claude, RHI, DLSS Swapper und NordVPN, sobald sie installiert sind.</div>';
@@ -5272,12 +5335,13 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
       },
       update: function () {
         if (!this.built) return; var c = this.c;
-        var ik = JSON.stringify(st.appIcons || {}) + st.wpPaused; if (ik !== this.icoK) { this.icoK = ik; c.querySelectorAll(".n-ic[data-ico]").forEach(function (ic) { var id = ic.getAttribute("data-ico"), im = MACRO_APP[id] ? appImg(MACRO_APP[id]) : ""; ic.classList.toggle("n-app", !!im); ic.innerHTML = im || '<svg viewBox="0 0 24 24"><path d="' + (id === "wp" && st.wpPaused ? MI.wpp : MI[id]) + '"/></svg>'; }); }
+        var ik = JSON.stringify(st.appIcons || {}) + st.wpPaused; if (ik !== this.icoK) { this.icoK = ik; c.querySelectorAll(".n-ic[data-ico]").forEach(function (ic) { var id = ic.getAttribute("data-ico"), im = MACRO_APP[id] ? appImg(MACRO_APP[id]) : ""; if (id.indexOf("kino_") === 0) im = '<img class="appico" src="' + KINO.icon(id.slice(5)) + '" alt="">'; ic.classList.toggle("n-app", !!im); ic.innerHTML = im || '<svg viewBox="0 0 24 24"><path d="' + (id === "wp" && st.wpPaused ? MI.wpp : MI[id]) + '"/></svg>'; }); }
         setTxt(q(c, '[data-macro="custom"] > span:not(.n-rt)'), st.macroCustom ? st.macroCustom : "nicht belegt");
         var rc = q(c, '[data-macro="rec"]'); rc.classList.toggle("n-rec", !!recAt); if (recAt) { var s = Math.floor((Date.now() - recAt) / 1000); setTxt(rc.querySelector(".n-rt"), pad(s / 60 | 0) + ":" + pad(s % 60)); }
       },
       tap: function (e) {
         var el = e.target.closest(".n-mk"); if (!el) return false; var id = el.getAttribute("data-macro");
+        if (id && id.indexOf("kino_") === 0) { KINO.start(id.slice(5), el); return true; }   // Streaming: Player auf dem Hauptmonitor, Steuerung auf dem Deck
         if (!noMotion()) {
           var r = E("i", "n-rip"); el.appendChild(r); r.animate([{ transform: "scale(0)", opacity: 0.6 }, { transform: "scale(40)", opacity: 0 }], { duration: 900, easing: "cubic-bezier(.2,.7,.2,1)" }).onfinish = function () { r.remove(); };
           q(el, ".n-ic").animate([{ transform: "scale(1)" }, { transform: "scale(.8) rotate(-8deg)" }, { transform: "scale(1.12)" }, { transform: "scale(1)" }], { duration: 600, easing: "ease-out" });
@@ -5625,7 +5689,7 @@ body.sum-on .nxpage, body.sum-on .osdock { filter: blur(10px) brightness(.8); }
         finish: function (toHud, m) { wave("rgba(255,255,255,.35)", 0.7, 1200); dir = 1; lmGoHud(toHud); m.timers.push(setTimeout(function () { if (LM === m) lmEnd(false); }, 50)); } };
     }
     // ===== deckos-201: Kino nutzt dieselben Start-Animationen wie Spiele (Einstellung „Spielstart“); „Kachel“ klappt die Karte um und landet als Player in der Mitte
-    function kinoRect(A) { var vw = Math.min(A.width, Math.round(A.height * 16 / 9)); return { left: A.left + (A.width - vw) / 2, top: A.top, width: vw, height: A.height }; }
+    function kinoRect(A) { var h = A.height * 0.74, w = Math.round(h * 0.72); return { left: A.left + (A.width - w) / 2, top: A.top + (A.height - h) / 2 + 20 * A.height / 720, width: w, height: h }; }   // deckos-203: Karte landet in der Mitte, dort klappen die Panels auf
     function kinoCard(g, from, to, u, back) {
       var card = E("div", "lmcard", '<div class="lmci"><div class="lmf"></div><div class="lmb"><i></i><u></u><div class="lmbc"><div class="lmname" style="font-size:' + Math.round(64 * u) + 'px">' + esc(g.name) + '</div><div class="lmsub2">' + (back ? "Bis bald" : "Wird gestartet") + '</div><div class="lmbar"><i></i></div></div></div></div>');
       card.style.setProperty("--flash", g.c[0]);

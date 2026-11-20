@@ -68,7 +68,7 @@ if (-not $own) {
     if (-not $own) { Log 'Alte Instanz reagiert nicht - Start abgebrochen.'; exit }
 }
 [void]$script:QuitEvent.Reset()
-$script:Version = 'deckos-202'
+$script:Version = 'deckos-203'
 Log '--- Start'
 Log "Version $($script:Version)"
 
@@ -1561,7 +1561,7 @@ public static class DeckIconX2 {
     # ------------------------------------------------------------ Kino (deckos-201): Streaming-Player als eigenes WebView2-Fenster links auf dem Deck, 16:9
     # Eigener Profilordner (Anmeldungen bleiben dort, getrennt vom Deck), eigener Browserprozess; existiert nur, solange das Kino offen ist.
     # Das Deck zeigt rechts daneben die Steuerung. Abfrage des Videos per Skript in Hauptseite + Frames (AniWorld-Hoster laufen im iframe).
-    $script:Kino = @{ Win = $null; Wv = $null; Hwnd = [IntPtr]::Zero; Vis = $false; Url = ''; Resume = 0.0; Resumed = $false; Frames = (New-Object System.Collections.ArrayList); Tasks = @(); VidF = $null; Timer = $null; Last = '' }
+    $script:Kino = @{ Pid = 0; Placed = $true; PlaceAt = $null; PlaceStep = 0; PlaceT = $null; ResN = -1; Logo = ''; Name = ''; Color = ''; Icon = ''; Go = $null; Win = $null; Wv = $null; Hwnd = [IntPtr]::Zero; Vis = $false; Url = ''; Resume = 0.0; Resumed = $false; Frames = (New-Object System.Collections.ArrayList); Tasks = @(); VidF = $null; Timer = $null; Last = '' }
     $script:KinoJs = @'
 (() => {
   if (!window.__kino) {
@@ -1608,123 +1608,240 @@ public static class DeckIconX2 {
   }
 })();
 '@
-    function Add-KinoFrame($f) {
-        try {
-            [void]$script:Kino.Frames.Add($f)
-            $f.add_Destroyed({ param($s, $e) try { $script:Kino.Frames.Remove($s); if ($script:Kino.VidF -eq $s) { $script:Kino.VidF = $null } } catch { } })
-            try { $f.add_FrameCreated({ param($s, $e) Add-KinoFrame $e.Frame }) } catch { }   # verschachtelte Frames (neuere Runtime)
-        } catch { Log "Kino-Frame: $_" }
-    }
-    function Get-KinoTargets {
-        $t = @(@{ F = $null; X = $script:Kino.Wv.CoreWebView2 })
-        foreach ($f in @($script:Kino.Frames)) { $t += @{ F = $f; X = $f } }
-        return $t
+    # Kino (deckos-203): Player als Edge-Fenster (eigenes Profil, Vollbild) – so greifen NVIDIA RTX Video (Super Resolution/HDR) und Netflix 4K/HDR.
+    # Das Deck steuert Edge ueber die Fernsteuer-Schnittstelle (DevTools-Protokoll, nur 127.0.0.1) aus einem Hintergrund-Thread.
+    $script:KC = $null
+    function Start-KinoCdp {
+        $K = [hashtable]::Synchronized(@{ Stop = $false; Port = 9333; Js = $script:KinoJs; Cmds = (New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'); Res = $null; ResN = 0; Alive = $false; Seen = $false; Miss = 0; VidSess = $null; Log = (New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]') })
+        $ps = [PowerShell]::Create()
+        [void]$ps.AddScript({
+            param($K)
+            $ws = $null; $script:cid = 0; $sess = @{}
+            function Recv {
+                $buf = New-Object byte[] 262144; $ms = New-Object IO.MemoryStream
+                do { $r = $ws.ReceiveAsync((New-Object 'ArraySegment[byte]' (, $buf)), [Threading.CancellationToken]::None).GetAwaiter().GetResult(); if ($r.MessageType -eq [Net.WebSockets.WebSocketMessageType]::Close) { throw 'closed' }; $ms.Write($buf, 0, $r.Count) } while (-not $r.EndOfMessage)
+                return ([Text.Encoding]::UTF8.GetString($ms.ToArray()) | ConvertFrom-Json)
+            }
+            function Ev($m) {
+                if ($m.method -eq 'Target.attachedToTarget') { $sess[[string]$m.params.sessionId] = [string]$m.params.targetInfo.url }
+                elseif ($m.method -eq 'Target.detachedFromTarget') { $sess.Remove([string]$m.params.sessionId); if ($K.VidSess -eq [string]$m.params.sessionId) { $K.VidSess = $null } }
+            }
+            function Rq([string]$method, $params, $sid) {
+                $script:cid++; $id = $script:cid
+                $o = [ordered]@{ id = $id; method = $method; params = $params }; if ($sid) { $o.sessionId = $sid }
+                $b = [Text.Encoding]::UTF8.GetBytes(($o | ConvertTo-Json -Depth 6 -Compress))
+                [void]$ws.SendAsync((New-Object 'ArraySegment[byte]' (, $b)), [Net.WebSockets.WebSocketMessageType]::Text, $true, [Threading.CancellationToken]::None).GetAwaiter().GetResult()
+                for ($n = 0; $n -lt 400; $n++) { $m = Recv; if ($m.id -eq $id) { return $m }; Ev $m }
+                return $null
+            }
+            while (-not $K.Stop) {
+                try {
+                    if (-not $ws -or $ws.State -ne [Net.WebSockets.WebSocketState]::Open) {
+                        $wc = New-Object Net.WebClient; $j = $wc.DownloadString("http://127.0.0.1:$($K.Port)/json") | ConvertFrom-Json
+                        $pg = @($j | Where-Object { $_.type -eq 'page' -and $_.webSocketDebuggerUrl })[0]
+                        if (-not $pg) { throw 'keine Seite' }
+                        $ws = New-Object Net.WebSockets.ClientWebSocket
+                        $ws.ConnectAsync([Uri]$pg.webSocketDebuggerUrl, [Threading.CancellationToken]::None).GetAwaiter().GetResult()
+                        $sess = @{}; $K.Seen = $true; $K.Alive = $true; $K.Miss = 0
+                        [void](Rq 'Target.setAutoAttach' @{ autoAttach = $true; waitForDebuggerOnStart = $false; flatten = $true } $null)
+                        $K.Log.Enqueue("Kino: Edge verbunden ($($pg.url))")
+                    }
+                    $c = $null
+                    while ($K.Cmds.TryDequeue([ref]$c)) {
+                        if ($c.StartsWith('NAV:')) { [void](Rq 'Page.navigate' @{ url = $c.Substring(4) } $null) }
+                        elseif ($c -eq 'FRONT') { [void](Rq 'Page.bringToFront' @{} $null) }
+                        elseif ($c.StartsWith('WIN:')) { $wr = Rq 'Browser.getWindowForTarget' @{} $null; if ($wr -and $wr.result) { [void](Rq 'Browser.setWindowBounds' @{ windowId = $wr.result.windowId; bounds = @{ windowState = $c.Substring(4) } } $null) } }
+                        elseif ($c -eq 'CLOSE') { try { [void](Rq 'Page.close' @{} $null) } catch { }; throw 'geschlossen' }
+                        else { [void](Rq 'Runtime.evaluate' @{ expression = $c } $(if ($K.VidSess -and $sess.ContainsKey($K.VidSess)) { $K.VidSess } else { $null })) }
+                    }
+                    $res = New-Object System.Collections.ArrayList
+                    foreach ($sid in @(@($null) + @($sess.Keys))) {
+                        $r = Rq 'Runtime.evaluate' @{ expression = ($K.Js + "`nwindow.__kino.st()"); returnByValue = $true } $sid
+                        if ($r -and $r.result -and $r.result.result -and $r.result.result.value) { [void]$res.Add(@{ S = $sid; V = [string]$r.result.result.value }) }
+                    }
+                    $K.Res = $res.ToArray(); $K.ResN++
+                } catch {
+                    try { if ($ws) { $ws.Dispose() } } catch { }; $ws = $null
+                    if ($K.Seen) { $K.Miss++; if ($K.Miss -gt 6) { $K.Alive = $false } }
+                    if ("$_" -eq 'geschlossen') { $K.Alive = $false }
+                }
+                Start-Sleep -Milliseconds 500
+            }
+            try { if ($ws) { $ws.Dispose() } } catch { }
+        }).AddArgument($K)
+        $K.PS = $ps; $K.H = $ps.BeginInvoke()
+        return $K
     }
     function Invoke-KinoCmd([string]$c, [double]$a) {
-        $k = $script:Kino; if (-not $k.Wv -or -not $k.Wv.CoreWebView2) { return }
-        $js = $script:KinoJs + "`nwindow.__kino.cmd('" + ($c -replace '[^a-z]', '') + "', " + $a.ToString([Globalization.CultureInfo]::InvariantCulture) + ")"
-        $tg = @(Get-KinoTargets | Where-Object { $_.F -eq $k.VidF })
-        if (-not $tg.Count) { $tg = @(Get-KinoTargets) }
-        foreach ($x in $tg) { try { [void]$x.X.ExecuteScriptAsync($js) } catch { } }
+        $K = $script:KC; if (-not $K) { return }
+        $K.Cmds.Enqueue($script:KinoJs + "`nwindow.__kino.cmd('" + ($c -replace '[^a-z]', '') + "', " + $a.ToString([Globalization.CultureInfo]::InvariantCulture) + ")")
     }
     function Step-Kino {
-        $k = $script:Kino; if (-not $k.Wv -or -not $k.Wv.CoreWebView2) { return }
-        # Ergebnisse der letzten Runde einsammeln
-        if ($k.Tasks.Count) {
-            if (@($k.Tasks | Where-Object { -not $_.T.IsCompleted }).Count -and $k.Tasks[0].At -gt (Get-Date).AddSeconds(-3)) { return }
-            $top = $null; $vid = $null; $vf = $null; $area = -1
-            foreach ($t in $k.Tasks) {
-                if (-not $t.T.IsCompleted -or $t.T.IsFaulted) { continue }
-                try { $s = ConvertFrom-Json ([string]$t.T.Result); if (-not $s) { continue }; $o = ConvertFrom-Json ([string]$s) } catch { continue }
-                if ($null -eq $t.F) { $top = $o }
-                if ($o.v -and ([double]$o.cw * [double]$o.ch) -gt $area) { $area = [double]$o.cw * [double]$o.ch; $vid = $o; $vf = $t.F }
-            }
-            $k.Tasks = @()
-            if ($vid) { $k.VidF = $vf }
-            $msg = [ordered]@{ type = 'kino'; vis = $k.Vis; title = [string]$(if ($top) { $top.title }); sub = [string]$(if ($top) { $top.sub }); url = [string]$(if ($top) { $top.url }); series = [string]$(if ($top) { $top.series }); ep = [string]$(if ($top) { $top.ep }); watch = [bool]$(if ($top) { $top.watch }); v = [bool]$vid }
-            if ($vid) { foreach ($n in 'w', 'h', 'cw', 'ch', 'pos', 'dur', 'paused', 'vol', 'drop', 'tot', 'ended') { $msg[$n] = $vid.$n } }
-            # Weiterschauen: einmal an die gemerkte Stelle springen (Netflix/Prime/Crunchyroll setzen selbst fort)
-            if ($vid -and -not $k.Resumed -and $k.Resume -gt 5 -and [double]$vid.dur -gt $k.Resume -and [double]$vid.pos -lt 5) { $k.Resumed = $true; Invoke-KinoCmd 'seekto' $k.Resume; Log ("Kino: weiter bei {0} s" -f [int]$k.Resume) }
-            $j = $msg | ConvertTo-Json -Compress
-            if ($j -ne $k.Last) { $k.Last = $j; Send $msg }
+        $k = $script:Kino; $K = $script:KC; if (-not $K) { return }
+        $l = $null; while ($K.Log.TryDequeue([ref]$l)) { Log $l }
+        if ($K.Seen -and -not $K.Alive) { Log 'Kino: Edge-Fenster wurde geschlossen'; Close-Kino $true; return }
+        if ($K.Alive -and -not $k.Placed) { try { Fix-KinoPlace } catch { Log "Kino-Platzierung: $_" } }
+        if ($K.ResN -eq $k.ResN) { return }; $k.ResN = $K.ResN
+        $top = $null; $vid = $null; $vs = $null; $area = -1
+        foreach ($t in @($K.Res)) {
+            try { $o = ConvertFrom-Json ([string]$t.V) } catch { continue }
+            if ($null -eq $t.S) { $top = $o }
+            if ($o.v -and ([double]$o.cw * [double]$o.ch) -gt $area) { $area = [double]$o.cw * [double]$o.ch; $vid = $o; $vs = $t.S }
         }
-        $js = $script:KinoJs + "`nwindow.__kino.st()"
-        $at = Get-Date
-        $k.Tasks = @(foreach ($x in @(Get-KinoTargets)) { try { @{ F = $x.F; T = $x.X.ExecuteScriptAsync($js); At = $at } } catch { } })
+        if ($vid) { $K.VidSess = $vs }
+        $msg = [ordered]@{ type = 'kino'; vis = $true; title = [string]$(if ($top) { $top.title }); sub = [string]$(if ($top) { $top.sub }); url = [string]$(if ($top) { $top.url }); series = [string]$(if ($top) { $top.series }); ep = [string]$(if ($top) { $top.ep }); watch = [bool]$(if ($top) { $top.watch }); v = [bool]$vid }
+        if ($vid) { foreach ($n in 'w', 'h', 'cw', 'ch', 'pos', 'dur', 'paused', 'vol', 'drop', 'tot', 'ended') { $msg[$n] = $vid.$n } }
+        if ($vid -and -not $k.Resumed -and $k.Resume -gt 5 -and [double]$vid.dur -gt $k.Resume -and [double]$vid.pos -lt 5) { $k.Resumed = $true; Invoke-KinoCmd 'seekto' $k.Resume; Log ("Kino: weiter bei {0} s" -f [int]$k.Resume) }
+        $j = $msg | ConvertTo-Json -Compress
+        if ($j -ne $k.Last) { $k.Last = $j; Send $msg }
     }
-    function Place-Kino {
-        $k = $script:Kino; $m = $script:Mon
-        if (-not $k.Win -or -not $k.Vis -or -not $m -or $k.Hwnd -eq [IntPtr]::Zero) { return }
-        $x = $m.X
-        if ($m.H -ge $m.W) { $w = $m.W; $h = [int][math]::Round($m.W * 9 / 16.0) } else { $h = $m.H; $w = [int][math]::Min($m.W, [math]::Round($m.H * 16 / 9.0)); $x = $m.X + [int][math]::Floor(($m.W - $w) / 2) }   # mittig (20.11.)
-        if ([DeckNative]::MoveTo($k.Hwnd, $x, $m.Y, $w, $h)) { Log "Kino: $x,$($m.Y) ${w}x$h" }
+    # Kino (deckos-203): Player randlos im Vollbild auf dem Hauptmonitor, Deck zeigt nur die Steuerung. Start/Ende mit eigener Animation im Player-Fenster.
+    $script:KinoIntro = @'
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>GameShelf Kino</title><style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;color:#fff;cursor:none}
+#bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 50% 46%,{{C}} 0%,rgba(0,0,0,0) 62%),#000;opacity:0}
+#ln{position:absolute;left:0;right:0;top:50%;height:3px;margin-top:-1.5px;background:{{C}};box-shadow:0 0 40px 8px {{C}};transform:scaleX(0)}
+#lt,#lb{position:absolute;left:0;right:0;height:50.5%;background:#000}#lt{top:0}#lb{bottom:0}
+#st{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#lg{width:16vh;height:16vh;border-radius:50%;display:grid;place-items:center;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.16),rgba(0,0,0,.35) 70%);box-shadow:inset 0 0 0 .45vh {{C}},0 0 0 .12vh rgba(255,255,255,.25),0 3vh 8vh rgba(0,0,0,.55),0 0 12vh {{C}};opacity:0}
+#lg.im{width:auto;min-width:16vh;border-radius:2vh;background:none;box-shadow:none;overflow:visible}#lg.im img{height:16vh;max-width:56vw;object-fit:contain;filter:drop-shadow(0 2vh 5vh rgba(0,0,0,.55)) drop-shadow(0 0 6vh {{C}})}#lg.im i{display:none}
+#lg b{font-size:8.4vh;font-weight:800;line-height:1;color:#fff;text-shadow:0 0 3vh {{C}}}
+#lg i{position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);transform:translateX(-130%)}
+#nm{margin-top:4.4vh;font-size:6.4vh;font-weight:800;letter-spacing:-.02em;text-shadow:0 8px 40px rgba(0,0,0,.6);opacity:0}
+#sb{display:none;margin-top:1.6vh;font-size:1.9vh;letter-spacing:.3em;text-transform:uppercase;font-weight:600;color:rgba(255,255,255,.8);opacity:0}
+#br{margin-top:2.4vh;width:22vh;height:3px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden;opacity:0}#br b{display:block;height:100%;width:100%;background:{{C}};transform-origin:left;transform:scaleX(0);box-shadow:0 0 12px {{C}}}
+.r{position:absolute;left:50%;top:46%;width:30vh;height:30vh;margin:-15vh 0 0 -15vh;border-radius:50%;border:2px solid {{C}};box-shadow:0 0 30px {{C}};opacity:0}
+</style></head><body><div id="bg"></div><i class="r"></i><i class="r"></i><i class="r"></i>
+<div id="st"><div id="lg"{{LGC}}>{{LG}}<i></i></div><div id="nm">{{N}}</div><div id="sb">{{T}}</div><div id="br"><b></b></div></div>
+<div id="lt"></div><div id="lb"></div><div id="ln"></div>
+<script>
+var $=function(s){return document.querySelector(s)},E="cubic-bezier(.65,0,.35,1)",S="cubic-bezier(.2,1.3,.4,1)",F={fill:"both"};
+function a(el,k,o){return el.animate(k,Object.assign({fill:"both"},o))}
+var OUT={{OUT}};
+if(!OUT){
+a($("#ln"),[{transform:"scaleX(0)",opacity:1},{transform:"scaleX(1)",opacity:1,offset:.55},{transform:"scaleX(1) scaleY(5)",opacity:1,offset:.8},{transform:"scaleX(1) scaleY(1)",opacity:0}],{duration:900,easing:"ease-out"});
+a($("#lt"),[{transform:"none"},{transform:"none",offset:.45},{transform:"translateY(-101%)"}],{duration:1150,easing:E});
+a($("#lb"),[{transform:"none"},{transform:"none",offset:.45},{transform:"translateY(101%)"}],{duration:1150,easing:E});
+a($("#bg"),[{opacity:0,transform:"scale(1.15)"},{opacity:1,transform:"scale(1)"}],{duration:1400,delay:450,easing:"cubic-bezier(.2,.6,.3,1)"});
+a($("#lg"),[{opacity:0,transform:"scale(.5) rotateY(70deg)",filter:"blur(10px)"},{opacity:1,transform:"scale(1.08) rotateY(0)",filter:"blur(0)",offset:.65},{opacity:1,transform:"scale(1)"}],{duration:900,delay:650,easing:S});
+a($("#lg i"),[{transform:"translateX(-130%)"},{transform:"translateX(130%)"}],{duration:750,delay:1250,easing:"cubic-bezier(.4,0,.2,1)"});
+[0,180,380].forEach(function(d,i){a(document.querySelectorAll(".r")[i],[{transform:"scale(.5)",opacity:0},{transform:"scale(.6)",opacity:.8,offset:.12},{transform:"scale("+(3+i)+")",opacity:0}],{duration:1400,delay:900+d,easing:"cubic-bezier(.15,.7,.3,1)"})});
+a($("#nm"),[{opacity:0,transform:"translateY(14px)",filter:"blur(6px)"},{opacity:1,transform:"none",filter:"blur(0)"}],{duration:700,delay:1000,easing:"cubic-bezier(.2,1,.3,1)"});
+[$("#sb"),$("#br")].forEach(function(x,i){a(x,[{opacity:0,transform:"translateY(8px)"},{opacity:1,transform:"none"}],{duration:500,delay:1250+i*80,easing:"ease-out"})});
+a($("#br b"),[{transform:"scaleX(0)"},{transform:"scaleX(1)"}],{duration:1100,delay:1350,easing:"cubic-bezier(.3,.6,.3,1)"});
+a($("#st"),[{opacity:1,transform:"none"},{opacity:0,transform:"scale(1.05)"}],{duration:450,delay:2500,easing:"ease-in"});
+a($("#bg"),[{opacity:1},{opacity:0}],{duration:500,delay:2500,easing:"ease-in"});
+}else{
+$("#lt").style.display=$("#lb").style.display="none";$("#bg").style.opacity=1;$("#lg").style.opacity=1;$("#nm").style.opacity=1;$("#sb").style.opacity=1;
+var D=1900,EO="cubic-bezier(.45,0,.25,1)";
+a($("#st"),[{opacity:0,transform:"scale(1.04)"},{opacity:1,transform:"none",offset:.28},{opacity:1,transform:"scale(.985)",offset:.55},{opacity:0,transform:"scale(.82)"}],{duration:D,easing:EO});
+a($("#bg"),[{opacity:0,transform:"scale(1.08)"},{opacity:1,transform:"none",offset:.3},{opacity:.85,transform:"scale(.97)",offset:.6},{opacity:0,transform:"scale(.9)"}],{duration:D,easing:EO});
+a($("#lg i"),[{transform:"translateX(-130%)"},{transform:"translateX(130%)"}],{duration:900,delay:300,easing:"cubic-bezier(.4,0,.2,1)"});
+a($("#ln"),[{transform:"scaleX(1)",opacity:0},{transform:"scaleX(1)",opacity:0,offset:.6},{transform:"scaleX(1)",opacity:1,offset:.74},{transform:"scaleX(0)",opacity:1,offset:.97},{transform:"scaleX(0)",opacity:0}],{duration:D+300,easing:"cubic-bezier(.5,0,.3,1)"});
+}
+</script></body></html>
+
+'@
+    function Get-KinoHtml([bool]$out) {
+        $k = $script:Kino
+        $c = if ($k.Color -match '^#[0-9a-fA-F]{6}$') { $k.Color } else { '#4C8DFF' }
+        $i = if ($k.Icon -match '^https://[^\s"<>]+$') { $k.Icon } else { '' }
+        $n = [System.Net.WebUtility]::HtmlEncode([string]$k.Name)
+        $t = if ($out) { 'Bis bald' } else { 'Wird gestartet' }
+        $l = [System.Net.WebUtility]::HtmlEncode(([string]$k.Name).Substring(0, [math]::Min(1, ([string]$k.Name).Length)))
+        $lg = "<b>$l</b>"; $lgc = ''
+        if ($k.Logo -match '^https://[^\s"<>]+$') { $lg = '<img src="' + $k.Logo + '" alt="" onerror="this.parentNode.className=&#39;&#39;;this.outerHTML=&#39;<b>' + $l + '</b>&#39;">'; $lgc = ' class="im"' }
+        return $script:KinoIntro.Replace('{{LGC}}', $lgc).Replace('{{LG}}', $lg).Replace('{{L}}', $l).Replace('{{C}}', $c).Replace('{{I}}', $i).Replace('{{N}}', $n).Replace('{{T}}', $t).Replace('{{OUT}}', $(if ($out) { 'true' } else { 'false' }))
     }
-    function Show-Kino {
-        $k = $script:Kino; if (-not $k.Win) { return }
-        $k.Vis = $true
-        if ($k.Win.Visibility -ne 'Visible') { $k.Win.Show() }
-        if ($k.Hwnd -eq [IntPtr]::Zero) { $k.Hwnd = (New-Object Windows.Interop.WindowInteropHelper $k.Win).Handle }
-        Update-Layout $true; Place-Kino
-        $k.Last = ''; $k.Timer.Start()
+    function Get-KinoMon {
+        $d = $script:Mon; $best = $null; $want = [string]$script:Settings.kinoMon
+        if ($want) { foreach ($m in [DeckNative]::Monitors()) { if ($m.Device -eq $want) { return $m } } }   # gewaehlter Bildschirm (falls angeschlossen)
+        foreach ($m in [DeckNative]::Monitors()) {
+            if ($d -and $m.Device -eq $d.Device) { continue }
+            if ($m.Primary) { return $m }
+            if (-not $best -or ([long]$m.W * $m.H) -gt ([long]$best.W * $best.H)) { $best = $m }
+        }
+        if ($best) { return $best }
+        return $d
     }
-    function Hide-Kino {
-        $k = $script:Kino; if (-not $k.Win) { return }
-        Invoke-KinoCmd 'pause' 0
-        $k.Vis = $false; $k.Timer.Stop(); $k.Tasks = @()
-        try { $k.Win.Hide() } catch { Log "Kino ausblenden: $_" }
-        Update-Layout $true
-        Send ([ordered]@{ type = 'kino'; vis = $false; open = $true })
+    function Get-KinoEdge {
+        foreach ($p in @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe", "$env:LOCALAPPDATA\Microsoft\Edge\Application\msedge.exe")) { if ($p -and (Test-Path -LiteralPath $p)) { return $p } }
+        return $null
     }
-    function Close-Kino {
-        $k = $script:Kino; if (-not $k.Win) { return }
-        $k.Vis = $false; try { $k.Timer.Stop() } catch { }
-        try { $k.Wv.Dispose() } catch { Log "Kino schliessen (WebView2): $_" }
-        try { $k.Win.Close() } catch { Log "Kino schliessen: $_" }
-        $k.Win = $null; $k.Wv = $null; $k.Hwnd = [IntPtr]::Zero; $k.Frames.Clear(); $k.Tasks = @(); $k.VidF = $null
-        Update-Layout $true
-        Log 'Kino geschlossen'
+    function Get-KinoDataUrl([bool]$out) {
+        $h = Get-KinoHtml $out
+        if (-not $out) { $h = $h.Replace('</body>', '<script>setTimeout(function(){location.replace(' + ($script:Kino.Url | ConvertTo-Json) + ')},2950)</script></body>') }
+        return 'data:text/html;charset=utf-8;base64,' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($h))
+    }
+    function Place-Kino { }
+    # Liegt das Edge-Fenster nicht auf dem gewaehlten Bildschirm (z. B. bei gemischter Windows-Skalierung), wird es in echten Bildpunkten verschoben und erst dort Vollbild
+    function Find-KinoHwnd {
+        $k = $script:Kino
+        try { if ($k.Pid) { $p = Get-Process -Id $k.Pid -ErrorAction Stop; $p.Refresh(); if ($p.MainWindowHandle -ne [IntPtr]::Zero) { return $p.MainWindowHandle } } } catch { }
+        foreach ($p in @(Get-Process msedge -ErrorAction SilentlyContinue)) { if ($p.MainWindowTitle -like 'GameShelf Kino*') { return $p.MainWindowHandle } }
+        return [IntPtr]::Zero
+    }
+    function Fix-KinoPlace {
+        $k = $script:Kino; $K = $script:KC; $now = Get-Date
+        if (-not $k.PlaceAt) { $k.PlaceAt = $now; $k.PlaceStep = 0 }
+        if (($now - $k.PlaceAt).TotalSeconds -gt 20) { $k.Placed = $true; Log 'Kino: Platzierung aufgegeben'; return }
+        $h = Find-KinoHwnd; if ($h -eq [IntPtr]::Zero) { return }
+        $m = Get-KinoMon; if (-not $m) { $k.Placed = $true; return }
+        Add-Type -AssemblyName System.Windows.Forms
+        $on = [System.Windows.Forms.Screen]::FromHandle($h).DeviceName
+        if ($k.PlaceStep -eq 0) {
+            if ($on -eq $m.Device) { $k.Placed = $true; Log "Kino: Edge liegt auf $on"; return }
+            $K.Cmds.Enqueue('WIN:normal'); $k.PlaceStep = 1; $k.PlaceT = $now; Log "Kino: Edge auf $on statt $($m.Device) – wird verschoben"; return
+        }
+        if ($k.PlaceStep -eq 1 -and ($now - $k.PlaceT).TotalMilliseconds -ge 350) {
+            [void][DeckNative]::MoveTo($h, $m.X + 80, $m.Y + 80, [int][math]::Min(1280, $m.W - 160), [int][math]::Min(720, $m.H - 160))
+            $k.PlaceStep = 2; $k.PlaceT = $now; return
+        }
+        if ($k.PlaceStep -eq 2 -and ($now - $k.PlaceT).TotalMilliseconds -ge 250) {
+            $K.Cmds.Enqueue('WIN:fullscreen'); $k.PlaceStep = 3; $k.PlaceT = $now; return
+        }
+        if ($k.PlaceStep -eq 3 -and ($now - $k.PlaceT).TotalMilliseconds -ge 600) {
+            if ($on -eq $m.Device) { $k.Placed = $true; Log "Kino: Edge jetzt auf $on" } else { $k.PlaceStep = 0 }
+        }
+    }
+    function Front-Kino { if ($script:KC) { $script:KC.Cmds.Enqueue('FRONT') } }
+    function Show-Kino { Front-Kino }
+    function Hide-Kino { }
+    function Close-Kino([bool]$fast) {
+        $k = $script:Kino; $K = $script:KC; if (-not $K) { return }
+        $script:KC = $null; $k.Vis = $false
+        try { $k.Timer.Stop() } catch { }
         Send ([ordered]@{ type = 'kino'; vis = $false; open = $false })
+        if (-not $fast -and $K.Alive) { $K.Cmds.Enqueue('NAV:' + (Get-KinoDataUrl $true)) }
+        $t = New-Object Windows.Threading.DispatcherTimer; $t.Interval = [TimeSpan]::FromMilliseconds($(if ($fast -or -not $K.Alive) { 50 } else { 2250 })); $t.Tag = $K
+        $t.add_Tick({ param($s2, $e2) $s2.Stop(); $x = $s2.Tag; try { $x.Cmds.Enqueue('CLOSE') } catch { }
+            $t2 = New-Object Windows.Threading.DispatcherTimer; $t2.Interval = [TimeSpan]::FromMilliseconds(1500); $t2.Tag = $x
+            $t2.add_Tick({ param($s3, $e3) $s3.Stop(); $y = $s3.Tag; $y.Stop = $true; try { $y.PS.EndInvoke($y.H); $y.PS.Dispose() } catch { }; Log 'Kino geschlossen' }); $t2.Start() })
+        $t.Start()
     }
     function Open-Kino([string]$url, [double]$resume) {
         if ($url -notmatch '^https://[^\s"]+$') { Log "Kino: Adresse abgelehnt ($url)"; return }
-        $k = $script:Kino; $k.Url = $url; $k.Resume = $resume; $k.Resumed = $false
+        $k = $script:Kino; $k.Url = $url; $k.Resume = $resume; $k.Resumed = $false; $k.Last = ''; $k.ResN = -1
         if (-not $k.Timer) {
             $k.Timer = New-Object Windows.Threading.DispatcherTimer
             $k.Timer.Interval = [TimeSpan]::FromMilliseconds(500)
             $k.Timer.add_Tick({ try { Step-Kino } catch { Log "Kino-Abfrage: $_" } })
         }
-        if ($k.Win) {
-            try { $k.Wv.CoreWebView2.Navigate($url) } catch { Log "Kino navigieren: $_" }
-            Show-Kino; Log "Kino: $url"; return
+        if ($script:KC -and $script:KC.Alive) { $script:KC.Cmds.Enqueue('NAV:' + (Get-KinoDataUrl $false)); Front-Kino; $k.Vis = $true; $k.Timer.Start(); Log "Kino: $url"; return }
+        $edge = Get-KinoEdge
+        if (-not $edge) { Log 'Kino: Microsoft Edge nicht gefunden'; Send ([ordered]@{ type = 'kino'; vis = $false; open = $false; err = 'Microsoft Edge wurde nicht gefunden.' }); return }
+        $m = Get-KinoMon
+        $prof = Join-Path $env:LOCALAPPDATA 'GameShelfDeck\EdgeKino'
+        $a = @("--user-data-dir=`"$prof`"", '--remote-debugging-port=9333', '--no-first-run', '--no-default-browser-check', '--disable-features=msEdgeSidebarV2,msUndersideButton', '--autoplay-policy=no-user-gesture-required', '--start-fullscreen')
+        if ($m) {   # Fenster mitten in den Ziel-Bildschirm setzen (Edge rechnet in Bildpunkten des Hauptbildschirms), dann Vollbild auf diesem Bildschirm
+            $sc = 1.0; try { $pm = @([DeckNative]::Monitors() | Where-Object { $_.Primary })[0]; if ($pm -and $pm.Dpi -gt 0) { $sc = $pm.Dpi / 96.0 } } catch { }
+            $a += ('--window-position={0},{1}' -f [int](($m.X + $m.W / 4) / $sc), [int](($m.Y + $m.H / 4) / $sc)); $a += '--window-size=800,600'
         }
-        $w = New-Object Windows.Window
-        $w.Title = 'GameShelf Kino'; $w.WindowStyle = 'None'; $w.ResizeMode = 'NoResize'; $w.ShowInTaskbar = $false; $w.ShowActivated = $false
-        $w.WindowStartupLocation = 'Manual'; $w.Left = 0; $w.Top = 0; $w.Width = 320; $w.Height = 180
-        $w.Background = [Windows.Media.Brushes]::Black
-        try { $w.Owner = $script:Win } catch { Log "Kino-Fenster ohne Besitzer: $_" }
-        $v = New-Object Microsoft.Web.WebView2.Wpf.WebView2
-        $p = New-Object Microsoft.Web.WebView2.Wpf.CoreWebView2CreationProperties
-        $p.UserDataFolder = Join-Path $env:LOCALAPPDATA 'GameShelfDeck\WebView2Kino'
-        $p.AdditionalBrowserArguments = '--disable-features=msSmartScreenProtection,CalculateNativeWinOcclusion --autoplay-policy=no-user-gesture-required'
-        $v.CreationProperties = $p
-        $v.DefaultBackgroundColor = [System.Drawing.Color]::Black
-        $w.Content = $v
-        $k.Win = $w; $k.Wv = $v
-        $v.add_CoreWebView2InitializationCompleted({
-            param($s, $e)
-            if (-not $e.IsSuccess) { Log "Kino: WebView2 nicht gestartet: $($e.InitializationException)"; Close-Kino; return }
-            try {
-                $c = $script:Kino.Wv.CoreWebView2
-                $c.Settings.IsStatusBarEnabled = $false; $c.Settings.IsZoomControlEnabled = $false; $c.Settings.IsPinchZoomEnabled = $false
-                $c.add_FrameCreated({ param($s2, $e2) Add-KinoFrame $e2.Frame })
-                $c.add_NewWindowRequested({ param($s2, $e2) $e2.Handled = $true; Log "Kino: Popup blockiert ($($e2.Uri))" })   # Werbe-Fenster der Hoster
-                $c.add_ProcessFailed({ param($s2, $e2) Log "Kino: WebView2-Prozess ausgefallen ($($e2.ProcessFailedKind))"; try { $script:Kino.Wv.CoreWebView2.Reload() } catch { } })
-                $c.Navigate($script:Kino.Url)
-                Log "Kino: $($script:Kino.Url)"
-            } catch { Log "Kino-Einrichtung: $_" }
-        })
-        Show-Kino
-        try { [void]$v.EnsureCoreWebView2Async() } catch { Log "Kino: WebView2: $_"; Close-Kino }
+        $a += ('--app=' + (Get-KinoDataUrl $false))
+        try { $pr = Start-Process -FilePath $edge -ArgumentList $a -PassThru; $k.Pid = $pr.Id } catch { Log "Kino: Edge-Start fehlgeschlagen: $_"; return }
+        $k.Placed = $false; $k.PlaceAt = $null; $k.PlaceStep = 0
+        $script:KC = Start-KinoCdp; $k.Vis = $true; $k.Timer.Start()
+        Log "Kino: Edge ($url)"
     }
 
     # ------------------------------------------------------------ Selbst-Neustart, wenn WebView2 nicht hochkommt (deckos-178)
@@ -2044,11 +2161,11 @@ public static class DeckIconX2 {
             'fchprof' { Send-FchProfiles }
             'kino' {   # deckos-201
                 switch ([string]$m.op) {
-                    'open' { $r = 0.0; try { $r = [double]$m.resume } catch { }; Open-Kino ([string]$m.url) $r }
+                    'open' { $r = 0.0; try { $r = [double]$m.resume } catch { }; $script:Kino.Name = [string]$m.name; $script:Kino.Color = [string]$m.color; $script:Kino.Icon = [string]$m.icon; $script:Kino.Logo = [string]$m.logo; Open-Kino ([string]$m.url) $r }
                     'cmd' { $a = 0.0; try { $a = [double]$m.a } catch { }; Invoke-KinoCmd ([string]$m.c) $a }
                     'hide' { Hide-Kino }
                     'show' { Show-Kino }
-                    'close' { Close-Kino }
+                    'close' { Close-Kino $false }
                 }
             }
             'fchavpick' { Select-FchAvatar ([string]$m.name) }
@@ -2095,6 +2212,10 @@ public static class DeckIconX2 {
             'mute' { $grp = @($script:MixerGroups | Where-Object { $_.key -eq [string]$m.key }) | Select-Object -First 1; if ($grp) { [void][DeckNative]::SetMute([int[]]$grp.pids, (-not [bool]$grp.mute)); Send-Mixer } }
             'set' {
                 $k = [string]$m.key
+                if ($k -eq 'kinoMon') {   # deckos-203: Bildschirm fuer Streams ('' = Hauptbildschirm)
+                    $v = [string]$m.value
+                    if ($v -eq '' -or $v -match '^\\\\\.\\DISPLAY\d{1,3}$') { $script:Settings.kinoMon = $v; Save-Settings; Log ("Kino-Bildschirm: {0}" -f $(if ($v) { $v } else { 'Hauptbildschirm' })); Update-Layout $true } else { Log 'Kino-Bildschirm: ungueltiger Wert' }
+                }
                 if ($k -eq 'monitor') {   # Bildschirm des Decks (deckos-179): '' = automatisch, sonst Geraetename
                     $v = [string]$m.value
                     if ($v -eq '' -or $v -match '^\\\\\.\\DISPLAY\d{1,3}$') {
@@ -2323,7 +2444,7 @@ public static class DeckIconX2 {
         if ($on -ne $script:DiscordOn) { Log ("Discord {0}" -f $(if ($on) { 'offen' } else { 'zu' })) }
         $script:Discord = $h; $script:DiscordOn = $on
         $dockOn = $on
-        if ($script:Idle -or $script:Kino.Vis) { $on = $false }   # Kino (deckos-201): Deck ueber die ganze Breite, Player liegt links darueber   # Idle-Bildschirm: Deck ueber die ganze Breite, Discord bleibt darunter liegen
+        if ($script:Idle) { $on = $false }   # Idle-Bildschirm: Deck ueber die ganze Breite, Discord bleibt darunter liegen
 
         $portrait = $m.H -ge $m.W
         $scale = $m.Dpi / 96.0
@@ -2359,11 +2480,11 @@ public static class DeckIconX2 {
         }
         # Bildschirmliste fuer die Auswahl in den Einstellungen (deckos-179): alle 5 s und bei erzwungenem Layout neu lesen
         if ($force -or (-not $script:MonList) -or ($script:Tick % 20 -eq 0)) {
-            try { $script:MonList = @([DeckNative]::Monitors() | ForEach-Object { [ordered]@{ dev = [string]$_.Device; w = [int]$_.W; h = [int]$_.H; primary = [bool]$_.Primary } }) } catch { Log "Bildschirmliste: $_"; $script:MonList = @() }
+            try { $script:MonList = @([DeckNative]::Monitors() | ForEach-Object { [ordered]@{ dev = [string]$_.Device; w = [int]$_.W; h = [int]$_.H; x = [int]$_.X; y = [int]$_.Y; primary = [bool]$_.Primary } }) } catch { Log "Bildschirmliste: $_"; $script:MonList = @() }
             $script:MonKey = (@($script:MonList | ForEach-Object { "$($_.dev):$($_.w)x$($_.h):$($_.primary)" }) -join ',')
         }
-        $msg = [ordered]@{ type = 'layout'; discordUp = ($h -ne [IntPtr]::Zero); discord = $on; portrait = $portrait; dcpos = $dcpos; share = $share; discordSplit = [bool]$script:Settings.discordSplit; autostart = [bool]$script:Settings.autostart; monitor = [string]$script:Settings.monitor; monActive = [string]$m.Device; monitors = @($script:MonList) }
-        $key = "$on|$($h -ne [IntPtr]::Zero)|$portrait|$dcpos|$share|$($script:Settings.discordSplit)|$($script:Settings.autostart)|$($script:Settings.monitor)|$($m.Device)|$($script:MonKey)"
+        $msg = [ordered]@{ type = 'layout'; kinoMon = [string]$script:Settings.kinoMon; discordUp = ($h -ne [IntPtr]::Zero); discord = $on; portrait = $portrait; dcpos = $dcpos; share = $share; discordSplit = [bool]$script:Settings.discordSplit; autostart = [bool]$script:Settings.autostart; monitor = [string]$script:Settings.monitor; monActive = [string]$m.Device; monitors = @($script:MonList) }
+        $key = "$($script:Settings.kinoMon)|$on|$($h -ne [IntPtr]::Zero)|$portrait|$dcpos|$share|$($script:Settings.discordSplit)|$($script:Settings.autostart)|$($script:Settings.monitor)|$($m.Device)|$($script:MonKey)"
         if ($force -or $key -ne $script:LastLayoutMsg) { $script:LastLayoutMsg = $key; Send $msg }
     }
 
