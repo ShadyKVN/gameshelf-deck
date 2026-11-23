@@ -68,7 +68,7 @@ if (-not $own) {
     if (-not $own) { Log 'Alte Instanz reagiert nicht - Start abgebrochen.'; exit }
 }
 [void]$script:QuitEvent.Reset()
-$script:Version = 'deckos-204'
+$script:Version = 'deckos-205'
 Log '--- Start'
 Log "Version $($script:Version)"
 
@@ -242,6 +242,22 @@ public static class DeckIdle {
         if (-not (Test-Path $script:CacheFile) -and (Test-Path (Join-Path $oldGs 'cache.json'))) { Copy-Item (Join-Path $oldGs 'cache.json') $script:CacheFile }
     } catch { Log "Uebernahme aus GameShelf: $_" }
     $script:Config = Read-Config $script:ConfigFile
+    # deckos-205: alte GameShelf-Ausblendliste (config.json "hidden") in die sichtbare Liste user\hidden.json uebernehmen.
+    # Vorher filterte sie Spiele schon beim Einlesen heraus - unsichtbar, auch nicht unter "Ausgeblendet" (Fall FF7 Rebirth, 23.11.2026).
+    try {
+        $oldHid = @($script:Config.hidden | Where-Object { [string]$_ } | ForEach-Object { [string]$_ })
+        if ($oldHid.Count -gt 0) {
+            $hf = Join-Path $script:Root 'user\hidden.json'; $hs = @{}
+            if (Test-Path $hf) { $hj = Get-Content $hf -Raw -Encoding UTF8 | ConvertFrom-Json; foreach ($x in $hj) { if ([string]$x) { $hs[[string]$x] = $true } } }   # wie Read-HiddenGames (PS 5.1 liefert das Array als ein Objekt)
+            foreach ($x in $oldHid) { $hs[$x] = $true }
+            if (-not (Test-Path (Split-Path -Parent $hf))) { New-Item -ItemType Directory -Path (Split-Path -Parent $hf) | Out-Null }
+            (ConvertTo-Json -InputObject @($hs.Keys | Sort-Object) -Compress) | Set-Content -Path $hf -Encoding UTF8
+            Copy-Item $script:ConfigFile ($script:ConfigFile + '.bak-hidden') -Force
+            $script:Config.hidden = @()
+            Save-Config $script:Config $script:ConfigFile
+            Log ("Alte Ausblendliste uebernommen: {0} Spiel(e) jetzt unter 'Ausgeblendet'" -f $oldHid.Count)
+        }
+    } catch { Log "Alte Ausblendliste: $_" }
     $script:SteamRoot = Get-SteamRoot
     $script:RunningPid = 0
     $script:GameProc = $null; $script:GameProcDir = ''; $script:GameGoneAt = 0; $script:SteamGone = $null
